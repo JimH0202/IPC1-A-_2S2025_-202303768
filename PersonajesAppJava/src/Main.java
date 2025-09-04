@@ -1,4 +1,4 @@
-import java.util.Scanner;
+    import java.util.Scanner;
 
 public class Main {
 
@@ -10,11 +10,11 @@ public class Main {
                 mostrarMenu();
                 System.out.print("Seleccione una opción: ");
                 
-                while (!scanner.hasNextInt()) {
-                    System.out.println("Entrada inválida. Ingrese un número.");
-                    scanner.next();
-                    System.out.print("Seleccione una opción: ");
-                }
+                // while (!scanner.hasNextInt()) {
+                //     System.out.println("Entrada inválida. Ingrese un número.");
+                //     scanner.next();
+                //     System.out.print("Seleccione una opción: ");
+                // }
                 
                 opcion = scanner.nextInt();
                 scanner.nextLine(); // Limpiar buffer

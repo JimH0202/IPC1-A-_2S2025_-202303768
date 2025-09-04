@@ -10,7 +10,7 @@ public class Personaje {
     static String[] armas = new String[MAX_PERSONAJES];
     static String[][] habilidades = new String[MAX_PERSONAJES][MAX_HABILIDADES];
     static int[] nivelesPoder = new int[MAX_PERSONAJES];
-    static int contadorPersonajes = 000;
+    static int contadorPersonajes = 0;
 
     // Generar ID correlativo
     private static int generarId() {
@@ -23,7 +23,7 @@ public class Personaje {
             return;
         }
 
-        System.out.print("Ingrese nombre del personaje (único): ");
+        System.out.print("Ingrese nombre del personaje: ");
         String nombre = scanner.nextLine().trim();
 
         // Validar nombre único
