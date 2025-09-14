@@ -5,7 +5,9 @@ import java.util.Scanner;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
-
+// ejecutar en vs code
+// javac -cp ".;librerias\\itextpdf-5.5.12.jar" src\\*.java
+// java -cp ".;librerias\\itextpdf-5.5.12.jar;src" Main
 
 public class Reportes {
 
@@ -13,7 +15,7 @@ public class Reportes {
     private static String[][] bitacoraAcciones = new String[MAX_ACCIONES][4];
     private static int contadorAcciones = 0;
 
-    // ================== MÉTODO PARA REGISTRAR ACCIONES ==================
+    // MÉTODO PARA REGISTRAR ACCIONES
     public static void registrarAccion(String tipoAccion, String estado, String usuario) {
         if (contadorAcciones < MAX_ACCIONES) {
             DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
@@ -27,14 +29,14 @@ public class Reportes {
         }
     }
 
-    // ================== MOSTRAR BITÁCORA EN CONSOLA ==================
+    // MOSTRAR BITÁCORA EN CONSOLA
     public static void bitacora() {
         if (contadorAcciones == 0) {
             System.out.println("No hay acciones registradas en la bitácora.");
             return;
         }
 
-        System.out.println("======= BITÁCORA DE ACCIONES =======");
+        System.out.println("****** BITÁCORA DE ACCIONES ******");
         System.out.printf("%-20s %-20s %-15s %-10s%n", "Fecha y Hora", "Acción", "Estado", "Usuario");
         System.out.println("-----------------------------------------------------------------------");
 
@@ -46,14 +48,14 @@ public class Reportes {
                     bitacoraAcciones[i][3]);
         }
 
-        System.out.println("====================================");
+        System.out.println("----------------------------------------------------------------------");
     }
 
     // ================== MENÚ DE REPORTES ==================
-    public static void Generarreportes(Scanner teclado) {
+    public static void Generarreportes(Scanner teclado, String usuario) {
         int opcion;
         do {
-            System.out.println("======= MENÚ REPORTES =======");
+            System.out.println("**** MENÚ REPORTES ****");
             System.out.println("1. Reporte de Stock");
             System.out.println("2. Reporte de Ventas");
             System.out.println("3. Volver al menú principal");
@@ -62,8 +64,8 @@ public class Reportes {
             teclado.nextLine(); // limpiar buffer
 
             switch (opcion) {
-                case 1 -> generarReporteStock();
-                case 2 -> generarReporteVentas();
+                case 1 -> generarReporteStock(usuario);
+                case 2 -> generarReporteVentas(usuario);
                 case 3 -> System.out.println("Regresando al menú principal...");
                 default -> System.out.println("Opción inválida. Intente de nuevo.");
             }
@@ -71,7 +73,7 @@ public class Reportes {
     }
 
     // ================== REPORTE DE STOCK ==================
-    private static void generarReporteStock() {
+    private static void generarReporteStock(String usuario) {
         try {
             DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm_ss");
             String nombreArchivo = formato.format(LocalDateTime.now()) + "_Stock.pdf";
@@ -105,15 +107,15 @@ public class Reportes {
             documento.close();
 
             System.out.println("Reporte de stock generado: " + nombreArchivo);
-            registrarAccion("Generar Reporte Stock", "Correcta", "Usuario");
-        } catch (Exception e) {
+            registrarAccion("Generar Reporte Stock", "Correcta", usuario);
+        } catch (FileNotFoundException | DocumentException e) {
             System.out.println("Error al generar reporte de stock: " + e.getMessage());
-            registrarAccion("Generar Reporte Stock", "Errónea", "Usuario");
+            registrarAccion("Generar Reporte Stock", "Errónea", usuario);
         }
     }
 
     // ================== REPORTE DE VENTAS ==================
-    private static void generarReporteVentas() {
+    private static void generarReporteVentas(String usuario) {
         try {
             DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm_ss");
             String nombreArchivo = formato.format(LocalDateTime.now()) + "_Venta.pdf";
@@ -133,31 +135,25 @@ public class Reportes {
             tabla.addCell("Total (Q)");
             tabla.addCell("Fecha y Hora");
 
-            try (BufferedReader reader = new BufferedReader(new FileReader("ventas.txt"))) {
-                String linea;
-                while ((linea = reader.readLine()) != null) {
-                    // Saltar encabezado
-                    if (linea.startsWith("Código")) continue;
-                    if (linea.startsWith("-")) continue;
-
-                    String[] datos = linea.trim().split("\\s+");
-                    if (datos.length >= 4) {
-                        tabla.addCell(datos[0]);
-                        tabla.addCell(datos[1]);
-                        tabla.addCell(datos[2]);
-                        tabla.addCell(datos[3] + (datos.length > 4 ? " " + datos[4] : ""));
-                    }
+            if (Venta.getHistorialVentas().isEmpty()) {
+                documento.add(new Paragraph("No hay ventas registradas."));
+            } else {
+                for (Venta v : Venta.getHistorialVentas()) {
+                    tabla.addCell(v.getCodigoProducto());
+                    tabla.addCell(String.valueOf(v.getCantidadVendida()));
+                    tabla.addCell(String.format("%.2f", v.getTotal()));
+                    tabla.addCell(v.getFechaHora());
                 }
+                documento.add(tabla);
             }
 
-            documento.add(tabla);
             documento.close();
 
             System.out.println("Reporte de ventas generado: " + nombreArchivo);
-            registrarAccion("Generar Reporte Ventas", "Correcta", "Usuario");
-        } catch (IOException e) {
+            registrarAccion("Generar Reporte Ventas", "Correcta", usuario);
+        } catch (IOException | DocumentException e) {
             System.out.println("Error al generar reporte de ventas: " + e.getMessage());
-            registrarAccion("Generar Reporte Ventas", "Errónea", "Usuario");
+            registrarAccion("Generar Reporte Ventas", "Errónea", usuario);
         }
     }
 }

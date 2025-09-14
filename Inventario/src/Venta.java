@@ -3,6 +3,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Venta {
@@ -13,6 +15,8 @@ public class Venta {
         this.total = total;
     }
 
+    // almacenar venta en memoria
+    private static List<Venta> historialVentas = new ArrayList<>();
     private String fechaHora;
 
     // Constructor
@@ -24,7 +28,7 @@ public class Venta {
     }
 
     // Método para registrar una venta
-    public static void Registrarventa(Scanner teclado) {
+    public static void Registrarventa(Scanner teclado, String usuario) {
         System.out.print("Ingrese código del producto: ");
         String codigo = teclado.nextLine();
 
@@ -40,6 +44,7 @@ public class Venta {
 
         if (productoEncontrado == null) {
             System.out.println("Error: Producto no encontrado.");
+            Reportes.registrarAccion("Registrar venta", "Errónea", usuario);
             return;
         }
 
@@ -49,11 +54,13 @@ public class Venta {
 
         if (cantidad <= 0) {
             System.out.println("Error: La cantidad debe ser mayor que 0.");
+            Reportes.registrarAccion("Registrar venta", "Errónea", usuario);
             return;
         }
 
         if (cantidad > productoEncontrado.getCantidad()) {
             System.out.println("Error: Stock insuficiente. Disponible: " + productoEncontrado.getCantidad());
+            Reportes.registrarAccion("Registrar venta", "Errónea", usuario);
             return;
         }
 
@@ -81,13 +88,20 @@ public class Venta {
                         codigo, cantidad, total, fechaHora));
             }
 
+            // Crear y guardar venta en memoria
+            Venta nuevaVenta = new Venta(codigo, cantidad, total, fechaHora);
+            historialVentas.add(nuevaVenta);
+
             System.out.println("Venta registrada exitosamente. Total: Q" + total);
+            Reportes.registrarAccion("Registrar venta", "Correcta", usuario);
 
         } catch (IOException e) {
             System.out.println("Error al guardar la venta en el archivo.");
+            Reportes.registrarAccion("Registrar venta", "Errónea", usuario);
         }
     }
 
+    // Getters y Setters
     public String getCodigoProducto() {
         return codigoProducto;
     }
@@ -114,5 +128,13 @@ public class Venta {
 
     public void setFechaHora(String fechaHora) {
         this.fechaHora = fechaHora;
+    }
+
+    public static List<Venta> getHistorialVentas() {
+        return historialVentas;
+    }
+
+    public static void setHistorialVentas(List<Venta> historialVentas) {
+        Venta.historialVentas = historialVentas;
     }
 }

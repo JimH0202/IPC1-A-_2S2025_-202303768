@@ -1,13 +1,9 @@
 import java.util.Scanner;
 
 public class Producto {
-    private static final int MAX_PRODUCTOS = 100; //maximo de productos a agregar
+    private static final int MAX_PRODUCTOS = 100; // máximo de productos a agregar
     private static Producto[] inventario = new Producto[MAX_PRODUCTOS];
     private static int contador = 0;
-
-    public static void setInventario(Producto[] inventario) {
-        Producto.inventario = inventario;
-    }
 
     private String codigo;
     private String nombre;
@@ -24,19 +20,20 @@ public class Producto {
     }
 
     // === Métodos del sistema ===
-    public static void Agregarproducto(Scanner teclado) {
+    public static void Agregarproducto(Scanner teclado, String usuario) {
         if (contador >= MAX_PRODUCTOS) {
             System.out.println("Inventario lleno. No se pueden agregar más productos.");
+            Reportes.registrarAccion("Agregar producto", "Errónea", usuario);
             return;
         }
 
         System.out.print("Ingrese código del producto: ");
         String codigo = teclado.nextLine();
 
-        // Validar código único
         for (int i = 0; i < contador; i++) {
             if (inventario[i].codigo.equals(codigo)) {
                 System.out.println("Error: Ya existe un producto con ese código.");
+                Reportes.registrarAccion("Agregar producto", "Errónea", usuario);
                 return;
             }
         }
@@ -56,6 +53,7 @@ public class Producto {
 
         if (precio <= 0 || cantidad < 0) {
             System.out.println("Error: El precio y cantidad deben ser positivos.");
+            Reportes.registrarAccion("Agregar producto", "Errónea", usuario);
             return;
         }
 
@@ -63,9 +61,10 @@ public class Producto {
         contador++;
 
         System.out.println("Producto agregado correctamente.");
+        Reportes.registrarAccion("Agregar producto", "Correcta", usuario);
     }
 
-    public static void Buscarproducto(Scanner teclado) {
+    public static void Buscarproducto(Scanner teclado, String usuario) {
         System.out.println("Buscar por: 1.Código  2.Nombre  3.Categoría");
         int opcion = teclado.nextInt();
         teclado.nextLine();
@@ -87,10 +86,13 @@ public class Producto {
         }
         if (!encontrado) {
             System.out.println("No se encontraron productos.");
+            Reportes.registrarAccion("Buscar producto", "Errónea", usuario);
+        } else {
+            Reportes.registrarAccion("Buscar producto", "Correcta", usuario);
         }
     }
 
-    public static void Eliminarproducto(Scanner teclado) {
+    public static void Eliminarproducto(Scanner teclado, String usuario) {
         System.out.print("Ingrese código del producto a eliminar: ");
         String codigo = teclado.nextLine();
 
@@ -102,13 +104,15 @@ public class Producto {
                 inventario[contador - 1] = null;
                 contador--;
                 System.out.println("Producto eliminado correctamente.");
+                Reportes.registrarAccion("Eliminar producto", "Correcta", usuario);
                 return;
             }
         }
         System.out.println("No se encontró el producto.");
+        Reportes.registrarAccion("Eliminar producto", "Errónea", usuario);
     }
 
-    // ==== Getters y Setters ====
+    // === Getters y Setters ===
     public String getCodigo() { return codigo; }
     public String getNombre() { return nombre; }
     public String getCategoria() { return categoria; }
@@ -117,8 +121,4 @@ public class Producto {
     public void setCantidad(int cantidad) { this.cantidad = cantidad; }
     public static Producto[] getInventario() { return inventario; }
     public static int getContador() { return contador; }
-    public void setCodigo(String codigo) {this.codigo = codigo;}
-    public void setNombre(String nombre) {this.nombre = nombre;}
-    public void setCategoria(String categoria) {this.categoria = categoria;}
-    public void setPrecio(double precio) {this.precio = precio;}
 }
