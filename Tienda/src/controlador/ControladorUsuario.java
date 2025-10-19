@@ -1,0 +1,162 @@
+package controlador;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import modelo.Administrador;
+import modelo.Usuario;
+import modelo.Vendedor;
+
+/**
+ * Controlador básico de usuarios usando arrays (vectores) y serialización simple.
+ * Archivo persistente: usuarios.ser
+ * Formato CSV para carga masiva: código,nombre,genero,contrasena (vendedores/ clientes según contexto)
+ */
+public class ControladorUsuario {
+    private final List<Usuario> usuarios;
+    private final ControladorBitacora bitacora;
+    private final File persistFile = new File("usuarios.ser");
+
+    public ControladorUsuario(ControladorBitacora bitacora) {
+        this.bitacora = bitacora;
+        this.usuarios = new ArrayList<>();
+        cargarPersistencia();
+        asegurarAdminPorDefecto();
+    }
+
+    private void asegurarAdminPorDefecto() {
+        // Si no existe administrador con código "admin" lo crea con contraseña IPC1A
+        if (buscarPorCodigo("admin") == null) {
+            Administrador admin = new Administrador("admin", "Administrador", "M", "IPC1A");
+            agregarUsuario(admin);
+            bitacora.registrar("ADMIN", "admin", "CREAR_USUARIO", "EXITOSA", "Admin por defecto creado");
+        }
+    }
+
+    public Usuario autenticar(String codigo, String contrasena) {
+        Usuario u = buscarPorCodigo(codigo);
+        if (u == null) {
+            bitacora.registrar("SISTEMA", codigo, "LOGIN", "FALLIDA", "Usuario no encontrado");
+            return null;
+        }
+        if (u.verifyPassword(contrasena)) {
+            bitacora.registrar(u.getRol(), u.getCodigo(), "LOGIN", "EXITOSA", "Inicio de sesión correcto");
+            return u;
+        } else {
+            bitacora.registrar(u.getRol(), u.getCodigo(), "LOGIN", "FALLIDA", "Contraseña incorrecta");
+            return null;
+        }
+    }
+
+    public boolean agregarUsuario(Usuario u) {
+        if (buscarPorCodigo(u.getCodigo()) != null) return false;
+        usuarios.add(u);
+        guardarPersistencia();
+        bitacora.registrar(u.getRol(), u.getCodigo(), "CREAR_USUARIO", "EXITOSA", "Usuario creado");
+        return true;
+    }
+
+    public boolean actualizarUsuario(String codigo, String nuevoNombre, String nuevaContrasena) {
+        Usuario u = buscarPorCodigo(codigo);
+        if (u == null) return false;
+        u.setNombre(nuevoNombre);
+        u.setPassword(nuevaContrasena);
+        guardarPersistencia();
+        bitacora.registrar(u.getRol(), u.getCodigo(), "ACTUALIZAR_USUARIO", "EXITOSA", "Usuario actualizado");
+        return true;
+    }
+
+    public boolean eliminarUsuario(String codigo) {
+        Usuario u = buscarPorCodigo(codigo);
+        if (u == null) return false;
+        usuarios.remove(u);
+        guardarPersistencia();
+        bitacora.registrar(u.getRol(), u.getCodigo(), "ELIMINAR_USUARIO", "EXITOSA", "Usuario eliminado");
+        return true;
+    }
+
+    public Usuario buscarPorCodigo(String codigo) {
+        for (Usuario u : usuarios) if (u.getCodigo().equalsIgnoreCase(codigo)) return u;
+        return null;
+    }
+
+    public Usuario[] listarUsuariosPorTipo(Class<?> tipo) {
+        List<Usuario> out = new ArrayList<>();
+        for (Usuario u : usuarios) if (tipo.isInstance(u)) out.add(u);
+        return out.toArray(new Usuario[0]);
+    }
+
+    public void cargarVendedoresDesdeCSV(File file) {
+        // Formato: Código, Nombre, Género, Contraseña, confirmados (ignore confirmados)
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+                String[] parts = line.split(",");
+                if (parts.length < 4) continue;
+                String codigo = parts[0].trim();
+                String nombre = parts[1].trim();
+                String genero = parts[2].trim();
+                String contrasena = parts[3].trim();
+                Vendedor v = new Vendedor(codigo, nombre, genero, contrasena);
+                agregarUsuario(v);
+            }
+            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_VENDEDORES", "EXITOSA", "Carga CSV vendedores");
+        } catch (Exception e) {
+            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_VENDEDORES", "FALLIDA", e.getMessage());
+        }
+    }
+
+    public void cargarClientesDesdeCSV(File file) {
+        // Formato: Código, Nombre, Género, Cumpleaños(dd/MM/yyyy), Contraseña
+        java.time.format.DateTimeFormatter f = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+                String[] parts = line.split(",");
+                if (parts.length < 5) continue;
+                String codigo = parts[0].trim();
+                String nombre = parts[1].trim();
+                String genero = parts[2].trim();
+                java.time.LocalDate fecha = java.time.LocalDate.now();
+                try { fecha = java.time.LocalDate.parse(parts[3].trim(), f); } catch (Exception ignored) {}
+                String contrasena = parts[4].trim();
+                modelo.Cliente c = new modelo.Cliente(codigo, nombre, genero, fecha, contrasena);
+                agregarUsuario(c);
+            }
+            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_CLIENTES", "EXITOSA", "Carga CSV clientes");
+        } catch (Exception e) {
+            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_CLIENTES", "FALLIDA", e.getMessage());
+        }
+    }
+
+    public Usuario[] listarTodosUsuarios() {
+        return usuarios.toArray(new Usuario[0]);
+    }
+
+    /* Persistencia simple por serialización */
+    private void guardarPersistencia() {
+        try {
+            util.Serializador.guardar(new ArrayList<>(usuarios), persistFile);
+        } catch (Exception e) {
+            bitacora.registrar("SISTEMA", "admin", "PERSISTENCIA_USUARIOS", "FALLIDA", e.getMessage());
+        }
+    }
+
+    private void cargarPersistencia() {
+        if (!persistFile.exists()) return;
+        try {
+            Object obj = util.Serializador.cargar(persistFile);
+            if (obj instanceof List) {
+                List<?> l = (List<?>) obj;
+                for (Object o : l) if (o instanceof Usuario) usuarios.add((Usuario) o);
+            }
+        } catch (Exception e) {
+            bitacora.registrar("SISTEMA", "admin", "CARGA_PERSISTENCIA_USUARIOS", "FALLIDA", e.getMessage());
+        }
+    }
+    
+}
