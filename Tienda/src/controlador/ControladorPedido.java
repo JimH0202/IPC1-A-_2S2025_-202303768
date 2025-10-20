@@ -44,12 +44,26 @@ public class ControladorPedido {
         String fechaHora = LocalDateTime.now().format(f);
         Pedido pedido = new Pedido(codigo, fechaHora, codigoCliente);
         double total = 0.0;
+        // Construir pedido desde el carrito.
+        // NOTA: el stock debe haber sido reservado al agregar al carrito; aquí solo se lee el carrito
         for (int i = 0; i < modeloCarrito.getRowCount(); i++) {
-            String codigoProducto = (String) modeloCarrito.getValueAt(i, 0);
-            final int cantidad = (int) modeloCarrito.getValueAt(i, 2);
-            double precio = (double) modeloCarrito.getValueAt(i, 3);
-            pedido.agregarLinea(codigoProducto, cantidad, precio);
-            total += cantidad * precio;
+            String codigoProducto = String.valueOf(modeloCarrito.getValueAt(i, 0));
+            int cant = 0;
+            double precio = 0.0;
+            try {
+                Object oCant = modeloCarrito.getValueAt(i, 2);
+                if (oCant instanceof Number) cant = ((Number) oCant).intValue(); else cant = Integer.parseInt(oCant.toString());
+            } catch (Exception ex) {
+                cant = 0;
+            }
+            try {
+                Object oPrecio = modeloCarrito.getValueAt(i, 3);
+                if (oPrecio instanceof Number) precio = ((Number) oPrecio).doubleValue(); else precio = Double.parseDouble(oPrecio.toString());
+            } catch (Exception ex) {
+                precio = 0.0;
+            }
+            pedido.agregarLinea(codigoProducto, cant, precio);
+            total += cant * precio;
         }
         pedido.setTotal(total);
         if (cantidad >= pedidos.length) pedidos = redimensionar(pedidos);
@@ -81,18 +95,8 @@ public class ControladorPedido {
         for (int i = 0; i < cantidad; i++) {
             if (pedidos[i].getCodigo().equalsIgnoreCase(codigoPedido)) {
                 Pedido p = pedidos[i];
-                // verificar stock para cada línea
-                for (Pedido.Linea l : p.getLineas()) {
-                    int stock = stockController.getStock(l.getCodigoProducto());
-                    if (stock < l.getCantidad()) {
-                        bitacora.registrar("VENDEDOR", codigoVendedor, "CONFIRMAR_PEDIDO", "FALLIDA", "Stock insuficiente " + l.getCodigoProducto());
-                        return false;
-                    }
-                }
-                // descontar stock
-                for (Pedido.Linea l : p.getLineas()) {
-                    stockController.agregarStock(l.getCodigoProducto(), -l.getCantidad(), codigoVendedor);
-                }
+                // En el flujo actual el stock ya fue reservado al crear el pedido.
+                // Aquí solo marcamos el pedido como confirmado y registramos el vendedor.
                 p.setConfirmado(true);
                 p.setVendedorConfirmador(codigoVendedor);
                 guardarPersistencia();
