@@ -20,7 +20,7 @@ public class DialogActualizarCliente extends JDialog {
         add(top, BorderLayout.NORTH);
 
         JPanel form = new JPanel(new GridLayout(6,2,6,6));
-        JTextField tfNombre = new JTextField(); JComboBox<String> cbGenero = new JComboBox<>(new String[]{"M","F"});
+        JTextField tfNombre = new JTextField(); JComboBox<String> cbGenero = new JComboBox<>(new String[]{"Masculino","Femenino"});
         JTextField tfCumple = new JTextField(); JPasswordField pf = new JPasswordField();
         form.add(new JLabel("Nombre:")); form.add(tfNombre);
         form.add(new JLabel("Genero:")); form.add(cbGenero);

@@ -100,8 +100,8 @@ public class MenuCliente extends JPanel {
             cargarHistorial(modeloHist);
         });
 
-        // Timer para refresco automático (5s)
-        javax.swing.Timer refresco = new javax.swing.Timer(5000, ev -> {
+        // Timer para refresco automático (2s)
+        javax.swing.Timer refresco = new javax.swing.Timer(2000, ev -> {
             cargarCatalogo();
             cargarHistorial(modeloHist);
         });

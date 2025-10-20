@@ -215,7 +215,7 @@ public final class PdfUtil {
         Document doc = new Document(PageSize.A4, 36,36,36,36);
         PdfWriter.getInstance(doc, new FileOutputStream(destino));
         doc.open();
-    addReportHeader(doc, "Inventario Crítico");
+    addReportHeader(doc, "STOCK Inventario");
         PdfPTable table = new PdfPTable(new float[]{3,6,3,3}); table.setWidthPercentage(100);
         addHeaderCell(table, "Codigo"); addHeaderCell(table, "Nombre"); addHeaderCell(table, "Stock"); addHeaderCell(table, "Estado");
         if (arr != null) for (util.ReportesUtil.StockEstado s : arr) { addCell(table, s.codigo); addCell(table, s.nombre); addCell(table, String.valueOf(s.stock)); addCell(table, s.estado); }

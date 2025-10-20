@@ -21,7 +21,7 @@ public class Login extends JFrame {
     private final JLabel lbStatus;
     public Login(Controladores controladores) {
         this.controladores = controladores;
-        setTitle("Sancarlista Shop - Login");
+        setTitle("SANCARLISTA SHOP - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(380, 220);
         setLocationRelativeTo(null);

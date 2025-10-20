@@ -12,8 +12,8 @@ public class CartFlowTest {
         ControladorUsuario uc = new ControladorUsuario(b);
         ControladorPedido pp = new ControladorPedido(pc, sc, uc, b);
 
-        // Create product and stock
-        Producto p = new Producto("T100","Prueba", "General");
+    // Create product and stock
+    Producto p = new ProductoGeneral("T100","Prueba", "General");
         pc.crearProducto(p);
         sc.agregarStock("T100", 10, "test");
 

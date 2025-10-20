@@ -20,7 +20,7 @@ public class DialogCrearUsuario extends JDialog {
 
     JTextField tfCodigo = new JTextField();
     JTextField tfNombre = new JTextField();
-    JComboBox<String> cbGenero = new JComboBox<>(new String[]{"M","F"});
+    JComboBox<String> cbGenero = new JComboBox<>(new String[]{"Masculino","Femenino"});
     JTextField tfFecha = new JTextField(); // cumpleaños
     JPasswordField pfPassword = new JPasswordField();
     JButton btnVerificar = new JButton("Verificar código");

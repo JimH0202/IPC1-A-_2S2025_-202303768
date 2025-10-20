@@ -14,12 +14,12 @@ public class DialogDatosEstudiante extends JDialog {
         JTextArea ta = new JTextArea(); ta.setEditable(false);
         ta.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         StringBuilder sb = new StringBuilder();
-        sb.append("Laboratorio: IPC1-A\n");
-        sb.append("Sección: 2S2025\n");
-        sb.append("Nombre: [Nombre del Estudiante]\n");
+        sb.append("Laboratorio: Introducción a la Programación y Computación 1\n");
+        sb.append("Sección:[A] 2S2025\n");
+        sb.append("Nombre: [Jimmy Brian Hurtarte López]\n");
         sb.append("Carnet: [202303768]\n");
-        sb.append("GitHub: [usuario_github]\n");
-        sb.append("Proyecto: Tienda - Módulo Administrador\n");
+        sb.append("GitHub: [JimH0202]\n");
+        sb.append("Proyecto 2: Tienda - SANCARLISTA SHOP\n");
         ta.setText(sb.toString());
         add(new JScrollPane(ta), BorderLayout.CENTER);
 

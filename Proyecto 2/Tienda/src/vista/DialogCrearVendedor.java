@@ -1,10 +1,9 @@
 package vista;
 
 import controlador.ControladorUsuario;
-import modelo.Vendedor;
-
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
+import modelo.Vendedor;
 
 public class DialogCrearVendedor extends JDialog {
     public DialogCrearVendedor(Window owner, ControladorUsuario ctrl) {
@@ -16,7 +15,7 @@ public class DialogCrearVendedor extends JDialog {
         JPanel form = new JPanel(new GridLayout(8,2,6,6));
         JTextField tfCodigo = new JTextField();
         JTextField tfNombre = new JTextField();
-        JComboBox<String> cbGenero = new JComboBox<>(new String[]{"M","F"});
+        JComboBox<String> cbGenero = new JComboBox<>(new String[]{"Masculino","Femenino"});
         JPasswordField pf = new JPasswordField();
         form.add(new JLabel("Codigo:")); form.add(tfCodigo);
         form.add(new JLabel("Nombre:")); form.add(tfNombre);

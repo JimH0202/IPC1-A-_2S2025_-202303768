@@ -58,19 +58,22 @@ public class MenuAdministrador extends JPanel {
         right.add(btnActualizar);
         right.add(btnEliminar);
 
-        JPanel graf = new JPanel();
-        graf.setBorder(BorderFactory.createTitledBorder("Top 3 - Vendedores con más ventas confirmadas"));
-        graf.setPreferredSize(new Dimension(200, 140));
-        right.add(graf);
+    final BarChartPanel graf = new BarChartPanel();
+    graf.setBorder(BorderFactory.createTitledBorder("Top 3 - Vendedores con más ventas confirmadas"));
+    graf.setPreferredSize(new Dimension(300, 180));
+    right.add(graf);
 
         panel.add(right, BorderLayout.EAST);
 
-        cargarVendedoresEnTabla(modelo);
+    cargarVendedoresEnTabla(modelo);
+    // inicializar gráfica
+    actualizarGraficaVendedores(graf);
 
         btnCrear.addActionListener(e -> {
             DialogCrearVendedor d = new DialogCrearVendedor(SwingUtilities.getWindowAncestor(MenuAdministrador.this), controladores.getUsuarioController());
             d.setVisible(true);
             cargarVendedoresEnTabla(modelo);
+            actualizarGraficaVendedores(graf);
         });
 
         btnCargar.addActionListener(e -> {
@@ -85,17 +88,23 @@ public class MenuAdministrador extends JPanel {
             }
             cargarVendedoresEnTabla(modelo);
         });
+        // actualizar grafica despues de cargar desde CSV
+        btnCargar.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {}
+        });
 
         btnActualizar.addActionListener(e -> {
             DialogActualizarVendedor d = new DialogActualizarVendedor(SwingUtilities.getWindowAncestor(MenuAdministrador.this), controladores.getUsuarioController());
             d.setVisible(true);
             cargarVendedoresEnTabla(modelo);
+            actualizarGraficaVendedores(graf);
         });
 
         btnEliminar.addActionListener(e -> {
             DialogEliminarVendedor d = new DialogEliminarVendedor(SwingUtilities.getWindowAncestor(MenuAdministrador.this), controladores.getUsuarioController());
             d.setVisible(true);
             cargarVendedoresEnTabla(modelo);
+            actualizarGraficaVendedores(graf);
         });
 
         return panel;
@@ -103,7 +112,7 @@ public class MenuAdministrador extends JPanel {
 
     private void cargarVendedoresEnTabla(DefaultTableModel modelo) {
         modelo.setRowCount(0);
-        // listarUsuariosPorTipo devuelve Usuario[] (controlador devuelve Usuario[]), por eso usamos Usuario[] y casteamos
+        // listarUsuariosPorTipo devuelve Usuario[] (controlador devuelve Usuario[]), casteamos a Vendedor[]
         modelo.setRowCount(0);
         modelo.setRowCount(0);
         modelo.setRowCount(0);
@@ -276,31 +285,37 @@ public class MenuAdministrador extends JPanel {
         JPanel panel = new JPanel(new GridLayout(0, 2, 12, 12));
         JPanel left = new JPanel(new GridLayout(0, 1, 8, 8));
         left.add(new JButton(new AbstractAction("Top 5 - Más vendidos") {
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 generarReporte("TOP_VENDIDOS");
             }
         }));
         left.add(new JButton(new AbstractAction("Top 5 - Menos vendidos") {
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 generarReporte("MENOS_VENDIDOS");
             }
         }));
-        left.add(new JButton(new AbstractAction("Inventario crítico") {
+        left.add(new JButton(new AbstractAction("STOCK Inventario") {
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                generarReporte("INVENTARIO_CRITICO");
+                generarReporte("STOCK_INVENTARIO");
             }
         }));
         left.add(new JButton(new AbstractAction("Ventas por vendedor") {
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 generarReporte("VENTAS_VENDEDOR");
             }
         }));
         left.add(new JButton(new AbstractAction("Clientes activos") {
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 generarReporte("CLIENTES_ACTIVOS");
             }
         }));
         left.add(new JButton(new AbstractAction("Reporte financiero") {
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 generarReporte("FINANCIERO");
             }
@@ -331,7 +346,7 @@ public class MenuAdministrador extends JPanel {
         panel.add(new JPanel());
         return panel;
     }
-
+      //Reportes
     private void generarReporte(String tipo) {
         JFileChooser ch = new JFileChooser();
         // sugerir nombre por defecto
@@ -360,13 +375,13 @@ public class MenuAdministrador extends JPanel {
                     for (util.ReportesUtil.ProductoVenta p : pv) {
                         if (p == null) continue;
                         int stock = controladores.getStockController().getStock(p.codigo);
-                        String rec = stock <= 5 ? "Promoción: Descuento 20%" : "Promoción: Combo/Bundle";
+                        String rec = stock <= 5 ? "Promoción: Descuento 20%" : "Promoción: Combo/Regalo/Bundle";
                         filas.add(new String[]{p.nombre, String.valueOf(p.cantidad), String.valueOf(stock), rec});
                     }
                     util.PdfUtil.generarReporteTabla(f, titulo, new String[]{"Nombre","Cantidad Vendida","Stock Actual","Recomendaciones"}, filas);
                     break;
                 }
-                case "INVENTARIO_CRITICO": {
+                case "STOCK_INVENTARIO": {
                     titulo = "Reporte de Inventario";
                     String[] cods = controladores.getStockController().listarCodigos();
                     int[] stocks = controladores.getStockController().listarStocks();
@@ -375,7 +390,7 @@ public class MenuAdministrador extends JPanel {
                     java.time.format.DateTimeFormatter df = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
                     String now = java.time.LocalDateTime.now().format(df);
                     for (util.ReportesUtil.StockEstado s : se) {
-                        String suger = s.estado.equalsIgnoreCase("CRITICO") ? "Reabastecer URGENTE" : (s.estado.equalsIgnoreCase("BAJO") ? "Reordenar" : "OK");
+                        String suger = s.estado.equalsIgnoreCase("CRITICO") ? "Reabastecer URGENTE" : (s.estado.equalsIgnoreCase("BAJO") ? "Reordenar / Considerar abastecer" : "OK");
                         filas.add(new String[]{s.codigo, s.nombre, s.categoria, String.valueOf(s.stock), s.estado, now, suger});
                     }
                     util.PdfUtil.generarReporteTabla(f, titulo, new String[]{"Codigo","Nombre","Categoria","Stock Actual","Estado","Fecha Actualizacion","Sugerencias"}, filas);
@@ -484,7 +499,7 @@ public class MenuAdministrador extends JPanel {
                         double avg = contPrecios.getOrDefault(cat,0) == 0 ? 0.0 : inc / contPrecios.get(cat);
                         filas.add(new String[]{cat, String.valueOf(cant), String.format("%.2f", inc), String.format("%.2f%%", pctUnidades), String.format("%.2f%%", pctIngresos), String.format("%.2f", avg)});
                     }
-                    util.PdfUtil.generarReporteTabla(f, titulo, new String[]{"Categoria","Cantidad Vendida","Ingresos","% Unidades","% Ingresos","Precio Promedio"}, filas);
+                    util.PdfUtil.generarReporteTabla(f, titulo, new String[]{"Categoria","Cantidad Vendida","Ingresos","% Participación Ventas Unidades","% Participación Ingresos","Precio de Venta Promedio"}, filas);
                     break;
                 }
                 case "POR_CADUCAR": {
@@ -520,6 +535,116 @@ public class MenuAdministrador extends JPanel {
         } catch (Exception ex) {
             controladores.getBitacoraController().registrar("ADMIN", "admin", "GENERAR_REPORTE", "FALLIDA", ex.getMessage());
             JOptionPane.showMessageDialog(this, "Error generando reporte: " + ex.getMessage());
+        }
+    }
+
+    // Actualiza la gráfica de barras para mostrar top 3 vendedores
+    private void actualizarGraficaVendedores(BarChartPanel panel) {
+        // obtener ventas por vendedor y ordenar por totalVentas (simple selection sort para evitar Collections.sort)
+        util.ReportesUtil.VendedorVenta[] vv = util.ReportesUtil.ventasPorVendedor(controladores.getPedidoController().listarTodos());
+        if (vv == null || vv.length == 0) {
+            panel.setData(new String[0], new double[0]);
+            return;
+        }
+        // copiar y seleccionar top 3 por totalVentas
+        util.ReportesUtil.VendedorVenta[] copy = new util.ReportesUtil.VendedorVenta[vv.length];
+        System.arraycopy(vv, 0, copy, 0, vv.length);
+        int n = Math.min(3, copy.length);
+        String[] names = new String[n];
+        double[] totals = new double[n];
+        for (int i = 0; i < n; i++) {
+            int best = -1;
+            for (int j = 0; j < copy.length; j++) {
+                if (copy[j] == null) continue;
+                if (best == -1 || copy[j].totalVentas > copy[best].totalVentas) best = j;
+            }
+            if (best == -1) break;
+            util.ReportesUtil.VendedorVenta sel = copy[best];
+            String nombre = sel.codigoVendedor;
+            modelo.Usuario u = controladores.getUsuarioController().buscarPorCodigo(sel.codigoVendedor);
+            if (u != null) nombre = u.getNombre();
+            names[i] = nombre + " (" + sel.cantidadPedidos + ")";
+            totals[i] = sel.totalVentas;
+            copy[best] = null;
+        }
+        panel.setData(names, totals);
+    }
+
+    // Panel simple para dibujar una gráfica de barras sin librerías externas
+    private static class BarChartPanel extends JPanel {
+        private String[] labels = new String[0];
+        private double[] values = new double[0];
+
+        public void setData(String[] labels, double[] values) {
+            this.labels = labels == null ? new String[0] : labels;
+            this.values = values == null ? new double[0] : values;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            try {
+                int w = getWidth();
+                int h = getHeight();
+                g2.setColor(getBackground());
+                g2.fillRect(0,0,w,h);
+                if (labels.length == 0 || values.length == 0) {
+                    g2.setColor(Color.DARK_GRAY);
+                    g2.drawString("No hay datos para mostrar", 10, 20);
+                    return;
+                }
+                double max = 0.0;
+                for (double v : values) if (v > max) max = v;
+                if (max <= 0) max = 1.0;
+                int margin = 10;
+                int labelHeight = 40;
+                int chartH = h - labelHeight - margin*2;
+                int chartW = w - margin*2;
+                int n = values.length;
+                int barWidth = Math.max(20, chartW / (n*2));
+                int gap = (chartW - n*barWidth) / (n+1);
+                int x = margin + gap;
+                for (int i = 0; i < n; i++) {
+                    int barH = (int) Math.round((values[i]/max) * chartH);
+                    int y = margin + (chartH - barH);
+                    // barra
+                    g2.setColor(new Color(79,129,189));
+                    g2.fillRect(x, y, barWidth, barH);
+                    g2.setColor(Color.BLACK);
+                    g2.drawRect(x, y, barWidth, barH);
+                    // valor encima
+                    String valStr = String.format("%.2f", values[i]);
+                    int vsw = g2.getFontMetrics().stringWidth(valStr);
+                    g2.drawString(valStr, x + Math.max(0, (barWidth - vsw)/2), Math.max(12, y - 4));
+                    // label abajo
+                    String lbl = labels.length > i ? labels[i] : Integer.toString(i+1);
+                    // envolver label si es largo
+                    int lblY = margin + chartH + 15;
+                    drawWrappedString(g2, lbl, x, lblY, barWidth);
+                    x += barWidth + gap;
+                }
+            } finally {
+                g2.dispose();
+            }
+        }
+
+        private void drawWrappedString(Graphics2D g2, String text, int x, int y, int width) {
+            java.util.List<String> parts = new java.util.ArrayList<>();
+            String[] toks = text.split("\\s+");
+            String cur = "";
+            for (String t : toks) {
+                String cand = cur.isEmpty() ? t : cur + " " + t;
+                if (g2.getFontMetrics().stringWidth(cand) > width && !cur.isEmpty()) { parts.add(cur); cur = t; }
+                else cur = cand;
+            }
+            if (!cur.isEmpty()) parts.add(cur);
+            int line = 0;
+            for (String p : parts) {
+                g2.drawString(p, x, y + line * 12);
+                line++;
+            }
         }
     }
 }
