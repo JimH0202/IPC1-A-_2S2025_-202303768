@@ -7,7 +7,6 @@ import modelo.Administrador;
 import modelo.Cliente;
 import modelo.Usuario;
 import modelo.Vendedor;
-import util.HiloMonitor;
 
 /**
  * Ventana principal que redirige según rol.
@@ -50,7 +49,19 @@ public class VentanaPrincipal extends JFrame {
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnLogout = new JButton("Cerrar sesión");
         btnLogout.addActionListener(e -> {
+            // registrar cierre de sesión en la bitácora
+            try {
+                if (controladores != null && controladores.getBitacoraController() != null) {
+                    String desc = String.format("Usuario %s (%s) cerró sesión", usuario.getNombre(), usuario.getCodigo());
+                    controladores.getBitacoraController().registrar(usuario.getRol(), usuario.getCodigo(), "LOGOUT", "EXITOSA", desc);
+                }
+            } catch (Exception ex) {
+                // no interrumpir el cierre por un error de bitácora
+            }
+
             dispose();
+            // limpiar appender UI del dispatcher para que no intente escribir en esta ventana cerrada
+            try { util.GlobalMonitorDispatcher.getInstance().setUIAppender(null); } catch (Exception ignored) {}
             Login login = new Login(controladores);
             login.setVisible(true);
         });
@@ -64,8 +75,8 @@ public class VentanaPrincipal extends JFrame {
         bottom.add(sp, BorderLayout.CENTER);
         add(bottom, BorderLayout.SOUTH);
 
-        // Exponer método para que HiloMonitor pueda publicar en esta área
-        this.setMonitorAppender(new MonitorAppender() {
+        // Exponer método para que el dispatcher global publique en esta área
+        MonitorAppender app = new MonitorAppender() {
             @Override
             public void append(String text) {
                 javax.swing.SwingUtilities.invokeLater(() -> {
@@ -73,48 +84,16 @@ public class VentanaPrincipal extends JFrame {
                     estadoArea.setCaretPosition(estadoArea.getDocument().getLength());
                 });
             }
-        });
+        };
+        this.setMonitorAppender(app);
+        // Registrar en dispatcher global
+        util.GlobalMonitorDispatcher.getInstance().setUIAppender(s -> app.append(s));
 
         // Los monitores se inician explícitamente por startMonitors() para mayor control
     }
 
-    private HiloMonitor sesionesMonitor;
-    private HiloMonitor pedidosMonitor;
-
-    public void startMonitors(Controladores controladores) {
-        if (sesionesMonitor != null) return;
-        sesionesMonitor = new HiloMonitor("Sesiones", 5000, () -> {
-            int n = controladores.getUsuarioController().listarTodosUsuarios().length;
-            return "Usuarios registrados: " + n;
-        });
-        sesionesMonitor.setListener(text -> { if (this.monitorAppender != null) this.monitorAppender.append(text);
-            // Si quieres que los monitores impriman en consola, descomenta la siguiente línea:
-            // System.out.println(text);
-        });
-        sesionesMonitor.start();
-
-        pedidosMonitor = new HiloMonitor("PedidosPendientes", 7000, () -> {
-            int k = controladores.getPedidoController().listarPedidosPendientes().length;
-            return "Pedidos pendientes: " + k;
-        });
-        pedidosMonitor.setListener(text -> { if (this.monitorAppender != null) this.monitorAppender.append(text);
-            // Si quieres que los monitores impriman en consola, descomenta la siguiente línea:
-            // System.out.println(text);
-        });
-        pedidosMonitor.start();
-
-        // Detener monitores al cerrar la ventana
-        this.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override public void windowClosing(java.awt.event.WindowEvent e) {
-                stopMonitors();
-            }
-        });
-    }
-
-    public void stopMonitors() {
-        if (sesionesMonitor != null) { sesionesMonitor.requestStop(); sesionesMonitor = null; }
-        if (pedidosMonitor != null) { pedidosMonitor.requestStop(); pedidosMonitor = null; }
-    }
+    // Los monitores son gestionados globalmente por Main (GlobalMonitorDispatcher).
+    // Esta ventana sólo registra/unregistra su appender UI; no controla la vida de los hilos.
 
     private MonitorAppender monitorAppender;
 

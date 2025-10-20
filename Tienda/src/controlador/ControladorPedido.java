@@ -69,7 +69,9 @@ public class ControladorPedido {
         if (cantidad >= pedidos.length) pedidos = redimensionar(pedidos);
         pedidos[cantidad++] = pedido;
         guardarPersistencia();
-        bitacora.registrar("CLIENTE", codigoCliente, "REALIZAR_PEDIDO", "EXITOSA", codigo);
+        // construir descripción detallada: codigo, total, cantidad de lineas
+        String desc = String.format("Pedido %s creado por Cliente %s - Total: %.2f, Productos: %d", codigo, codigoCliente, total, pedido.getLineas().length);
+        bitacora.registrar("CLIENTE", codigoCliente, "REALIZAR_PEDIDO", "EXITOSA", desc);
         return pedido;
     }
 
@@ -104,7 +106,11 @@ public class ControladorPedido {
                 if (usuarioController != null) {
                     usuarioController.incrementarVentasConfirmadas(codigoVendedor, 1);
                 }
-                bitacora.registrar("VENDEDOR", codigoVendedor, "CONFIRMAR_PEDIDO", "EXITOSA", codigoPedido);
+                // registrar con detalle: vendedor, pedido, total y número de productos
+                double total = p.getTotal();
+                int productos = p.getLineas().length;
+                String desc = String.format("Pedido %s confirmado por Vendedor %s - Total: %.2f, Productos: %d", codigoPedido, codigoVendedor, total, productos);
+                bitacora.registrar("VENDEDOR", codigoVendedor, "CONFIRMAR_PEDIDO", "EXITOSA", desc);
                 return true;
             }
         }

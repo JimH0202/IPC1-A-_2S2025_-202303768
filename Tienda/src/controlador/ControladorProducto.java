@@ -130,11 +130,12 @@ public class ControladorProducto {
                 crearProducto(p);
                 res.aceptadas++;
             }
-            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_PRODUCTOS", "EXITOSA", file.getName() + " -> " + res.resumen());
+            String resumen = String.format("%s -> %s", file.getName(), res.resumen());
+            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_PRODUCTOS", "EXITOSA", resumen);
         } catch (Exception e) {
             res.rechazadas++;
             res.errores.add("Error lectura: " + e.getMessage());
-            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_PRODUCTOS", "FALLIDA", e.getMessage());
+            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_PRODUCTOS", "FALLIDA", file.getName() + " : " + e.getMessage());
         }
         return res;
     }

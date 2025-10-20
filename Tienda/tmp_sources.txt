@@ -22,6 +22,7 @@ C:\Users\jimhu\Desktop\IPC1-A-_2S2025_-202303768\Tienda\src\tools\ReportesSmokeT
 C:\Users\jimhu\Desktop\IPC1-A-_2S2025_-202303768\Tienda\src\util\CargaCSVResult.java
 C:\Users\jimhu\Desktop\IPC1-A-_2S2025_-202303768\Tienda\src\util\CSVUtil.java
 C:\Users\jimhu\Desktop\IPC1-A-_2S2025_-202303768\Tienda\src\util\HiloMonitor.java
+C:\Users\jimhu\Desktop\IPC1-A-_2S2025_-202303768\Tienda\src\util\GlobalMonitorDispatcher.java
 C:\Users\jimhu\Desktop\IPC1-A-_2S2025_-202303768\Tienda\src\util\PasswordUtil.java
 C:\Users\jimhu\Desktop\IPC1-A-_2S2025_-202303768\Tienda\src\util\PdfUtil.java
 C:\Users\jimhu\Desktop\IPC1-A-_2S2025_-202303768\Tienda\src\util\ReportesUtil.java

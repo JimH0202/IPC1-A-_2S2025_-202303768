@@ -296,3 +296,22 @@
 [20/10/2025 00:44:50] | VENDEDOR | 1234 | CONFIRMAR_PEDIDO | EXITOSA | PE-025
 [20/10/2025 00:45:18] | VENDEDOR | 1234 | AGREGAR_STOCK | EXITOSA | Producto A001 Cant:1000
 [20/10/2025 00:45:52] | CLIENTE | C002 | LOGIN | EXITOSA | Inicio de sesión correcto
+[20/10/2025 01:30:32] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
+[20/10/2025 01:30:52] | ADMINISTRADOR | admin | LOGOUT | EXITOSA | Usuario Administrador (admin) cerró sesión
+[20/10/2025 01:30:58] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
+[20/10/2025 01:56:34] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
+[20/10/2025 01:57:27] | ADMINISTRADOR | admin | LOGOUT | EXITOSA | Usuario Administrador (admin) cerró sesión
+[20/10/2025 01:57:32] | VENDEDOR | 1234 | LOGIN | EXITOSA | Inicio de sesión correcto
+[20/10/2025 02:03:26] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
+[20/10/2025 02:03:54] | ADMINISTRADOR | admin | LOGOUT | EXITOSA | Usuario Administrador (admin) cerró sesión
+[20/10/2025 02:03:59] | VENDEDOR | 1234 | LOGIN | EXITOSA | Inicio de sesión correcto
+[20/10/2025 02:11:37] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
+[20/10/2025 02:11:52] | ADMINISTRADOR | admin | LOGOUT | EXITOSA | Usuario Administrador (admin) cerró sesión
+[20/10/2025 02:11:57] | VENDEDOR | 1234 | LOGIN | EXITOSA | Inicio de sesión correcto
+[20/10/2025 02:12:06] | VENDEDOR | 1234 | LOGOUT | EXITOSA | Usuario JIMMY (1234) cerró sesión
+[20/10/2025 02:12:10] | CLIENTE | C002 | LOGIN | EXITOSA | Inicio de sesión correcto
+[20/10/2025 02:12:36] | CLIENTE | C002 | LOGOUT | EXITOSA | Usuario JIMMY (C002) cerró sesión
+[20/10/2025 02:12:40] | VENDEDOR | 1234 | LOGIN | EXITOSA | Inicio de sesión correcto
+[20/10/2025 02:13:36] | VENDEDOR | 1234 | LOGOUT | EXITOSA | Usuario JIMMY (1234) cerró sesión
+[20/10/2025 02:13:40] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
+[20/10/2025 02:13:50] | ADMINISTRADOR | admin | LOGOUT | EXITOSA | Usuario Administrador (admin) cerró sesión

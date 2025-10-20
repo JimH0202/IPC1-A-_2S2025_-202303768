@@ -121,11 +121,11 @@ public class ControladorUsuario {
                 agregarUsuario(v);
                 res.aceptadas++;
             }
-            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_VENDEDORES", "EXITOSA", "Carga CSV vendedores: " + res.resumen());
+            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_VENDEDORES", "EXITOSA", file.getName() + " -> " + res.resumen());
         } catch (Exception e) {
             res.rechazadas++;
             res.errores.add("Error lectura: " + e.getMessage());
-            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_VENDEDORES", "FALLIDA", e.getMessage());
+            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_VENDEDORES", "FALLIDA", file.getName() + " : " + e.getMessage());
         }
         return res;
     }
@@ -149,9 +149,9 @@ public class ControladorUsuario {
                 modelo.Cliente c = new modelo.Cliente(codigo, nombre, genero, fecha, contrasena);
                 agregarUsuario(c);
             }
-            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_CLIENTES", "EXITOSA", "Carga CSV clientes");
+            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_CLIENTES", "EXITOSA", file.getName() + " -> carga clientes OK");
         } catch (Exception e) {
-            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_CLIENTES", "FALLIDA", e.getMessage());
+            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_CLIENTES", "FALLIDA", file.getName() + " : " + e.getMessage());
         }
     }
 

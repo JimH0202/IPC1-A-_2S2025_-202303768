@@ -99,7 +99,9 @@ public class MenuVendedor extends JPanel {
         btnCargarClientes.addActionListener(e -> {
             JFileChooser ch = new JFileChooser();
             if (ch.showOpenDialog(MenuVendedor.this) == JFileChooser.APPROVE_OPTION) {
-                controladores.getUsuarioController().cargarClientesDesdeCSV(ch.getSelectedFile());
+                    // registrar inicio de carga CSV clientes (UI)
+                    try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "CARGA_CSV_CLIENTES_UI", "INICIO", ch.getSelectedFile().getName()); } catch (Exception ignored) {}
+                    controladores.getUsuarioController().cargarClientesDesdeCSV(ch.getSelectedFile());
                 cargarClientesEnTabla(modeloClientes);
             }
         });
@@ -177,7 +179,12 @@ public class MenuVendedor extends JPanel {
         if (s == null) return;
         try {
             int cantidad = Integer.parseInt(s);
-            controladores.getStockController().agregarStock(codigo, cantidad, vendedor.getCodigo());
+            boolean ok = controladores.getStockController().agregarStock(codigo, cantidad, vendedor.getCodigo());
+            if (ok) {
+                try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "AGREGAR_STOCK_UI", "EXITOSA", String.format("Vendedor %s agregó stock Producto %s Cant=%d", vendedor.getCodigo(), codigo, cantidad)); } catch (Exception ignored) {}
+            } else {
+                try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "AGREGAR_STOCK_UI", "FALLIDA", String.format("Vendedor %s intentó agregar Producto %s Cant=%d", vendedor.getCodigo(), codigo, cantidad)); } catch (Exception ignored) {}
+            }
             cargarProductos();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Cantidad inválida");
@@ -197,12 +204,20 @@ public class MenuVendedor extends JPanel {
         try { cantidad = Integer.parseInt(tfCantidad.getText().trim()); } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Cantidad inválida"); return; }
         if (controladores.getProductoController().buscarProducto(codigo) == null) { JOptionPane.showMessageDialog(this, "Código de producto no existe"); return; }
         boolean ok = controladores.getStockController().agregarStock(codigo, cantidad, vendedor.getCodigo());
-        if (!ok) JOptionPane.showMessageDialog(this, "No se pudo agregar stock"); else cargarProductos();
+        if (!ok) {
+            JOptionPane.showMessageDialog(this, "No se pudo agregar stock");
+            try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "AGREGAR_STOCK_UI", "FALLIDA", String.format("Agregar stock formulario: %s Cant=%d", codigo, cantidad)); } catch (Exception ignored) {}
+        } else {
+            try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "AGREGAR_STOCK_UI", "EXITOSA", String.format("Agregar stock formulario: %s Cant=%d", codigo, cantidad)); } catch (Exception ignored) {}
+            cargarProductos();
+        }
     }
 
     private void cargarStockCSV() {
         JFileChooser chooser = new JFileChooser();
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            // registrar inicio de carga CSV stock (UI)
+            try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "CARGA_CSV_STOCK_UI", "INICIO", chooser.getSelectedFile().getName()); } catch (Exception ignored) {}
             controladores.getStockController().cargarDesdeCSV(chooser.getSelectedFile(), vendedor.getCodigo());
             cargarProductos();
         }
@@ -232,12 +247,15 @@ public class MenuVendedor extends JPanel {
             return;
         }
         String codigo = (String) modeloPedidos.getValueAt(row, 0);
+        try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "CONFIRMAR_PEDIDO_UI", "INTENTO", codigo); } catch (Exception ignored) {}
         boolean ok = controladores.getPedidoController().confirmarPedido(codigo, vendedor.getCodigo());
         if (ok) {
+            try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "CONFIRMAR_PEDIDO_UI", "EXITOSA", codigo); } catch (Exception ignored) {}
             JOptionPane.showMessageDialog(this, "Pedido confirmado");
             cargarPedidos();
             cargarProductos();
         } else {
+            try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "CONFIRMAR_PEDIDO_UI", "FALLIDA", codigo); } catch (Exception ignored) {}
             JOptionPane.showMessageDialog(this, "No se pudo confirmar el pedido (stock insuficiente?)");
         }
     }
@@ -250,8 +268,9 @@ public class MenuVendedor extends JPanel {
         }
         int exitos = 0; int fallidos = 0;
         for (Pedido p : pedidos) {
+            try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "CONFIRMAR_PEDIDO_UI", "INTENTO", p.getCodigo()); } catch (Exception ignored) {}
             boolean ok = controladores.getPedidoController().confirmarPedido(p.getCodigo(), vendedor.getCodigo());
-            if (ok) exitos++; else fallidos++;
+            if (ok) { exitos++; try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "CONFIRMAR_PEDIDO_UI", "EXITOSA", p.getCodigo()); } catch (Exception ignored) {} } else { fallidos++; try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "CONFIRMAR_PEDIDO_UI", "FALLIDA", p.getCodigo()); } catch (Exception ignored) {} }
         }
         String msg = String.format("Confirmados: %d. Fallidos: %d.", exitos, fallidos);
         JOptionPane.showMessageDialog(this, msg);

@@ -170,6 +170,8 @@ public class MenuCliente extends JPanel {
                                 if (stock < cantidad) { JOptionPane.showMessageDialog(MenuCliente.this, "Stock insuficiente"); return; }
                                 boolean ok = controladores.getStockController().agregarStock(codigo, -cantidad, cliente.getCodigo());
                                 if (!ok) { JOptionPane.showMessageDialog(MenuCliente.this, "No se pudo reservar stock"); return; }
+                                // registrar reserva en bitácora
+                                try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "RESERVAR_STOCK", "EXITOSA", String.format("Reserva: Cliente %s, Producto %s, Cantidad=%d", cliente.getCodigo(), codigo, cantidad)); } catch (Exception ignored) {}
                                 double precio = Double.parseDouble(modeloCatalogo.getValueAt(row, 4).toString());
                                 String nombre = (String) modeloCatalogo.getValueAt(row,1);
                                 // stop editing then perform model update asynchronously to avoid editor/model conflict
@@ -185,8 +187,10 @@ public class MenuCliente extends JPanel {
                                         int nueva = old + cantidad;
                                         modeloCarrito.setValueAt(nueva, found, 2);
                                         modeloCarrito.setValueAt(nueva * precio, found, 4);
+                                        try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "ACTUALIZAR_CARRITO", "EXITOSA", String.format("Cliente %s sumó %d al carrito Producto %s -> nueva cantidad %d", cliente.getCodigo(), cantidad, codigo, nueva)); } catch (Exception ignored) {}
                                     } else {
                                         modeloCarrito.addRow(new Object[]{codigo, nombre, cantidad, precio, cantidad * precio, "Opciones"});
+                                        try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "AGREGAR_CARRITO", "EXITOSA", String.format("Cliente %s agregó Producto %s Cant=%d al carrito", cliente.getCodigo(), codigo, cantidad)); } catch (Exception ignored) {}
                                     }
                                     try { actualizarTotalCarrito(lblTotal); } catch (Exception ignored) {}
                                     // refrescar catálogo para actualizar stocks y liberar cualquier estado de edición
@@ -211,8 +215,10 @@ public class MenuCliente extends JPanel {
                                         int stock = controladores.getStockController().getStock(codigo);
                                         if (stock < diff) { JOptionPane.showMessageDialog(MenuCliente.this, "Stock insuficiente"); return; }
                                         controladores.getStockController().agregarStock(codigo, -diff, cliente.getCodigo());
+                                        try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "RESERVAR_STOCK", "EXITOSA", String.format("Ajuste carrito: Cliente %s reservó +%d de %s", cliente.getCodigo(), diff, codigo)); } catch (Exception ignored) {}
                                     } else if (diff < 0) {
                                         controladores.getStockController().agregarStock(codigo, -diff, cliente.getCodigo());
+                                        try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "LIBERAR_STOCK", "EXITOSA", String.format("Ajuste carrito: Cliente %s liberó %d de %s", cliente.getCodigo(), -diff, codigo)); } catch (Exception ignored) {}
                                     }
                                     double precio = Double.parseDouble(modeloCarrito.getValueAt(row, 3).toString());
                                     modeloCarrito.setValueAt(cantidad, row, 2);
@@ -223,6 +229,7 @@ public class MenuCliente extends JPanel {
                                 String codigo = (String) modeloCarrito.getValueAt(row, 0);
                                 int cantidad = Integer.parseInt(modeloCarrito.getValueAt(row, 2).toString());
                                 controladores.getStockController().agregarStock(codigo, cantidad, cliente.getCodigo());
+                                try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "LIBERAR_STOCK", "EXITOSA", String.format("Eliminar carrito: Cliente %s liberó %d de %s", cliente.getCodigo(), cantidad, codigo)); } catch (Exception ignored) {}
                                 modeloCarrito.removeRow(row);
                             }
                         }
@@ -289,8 +296,10 @@ public class MenuCliente extends JPanel {
                         int stock = controladores.getStockController().getStock(codigo);
                         if (stock < diff) { JOptionPane.showMessageDialog(MenuCliente.this, "Stock insuficiente"); return; }
                         controladores.getStockController().agregarStock(codigo, -diff, cliente.getCodigo());
+                        try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "RESERVAR_STOCK", "EXITOSA", String.format("Ajuste carrito (editor): Cliente %s reservó +%d de %s", cliente.getCodigo(), diff, codigo)); } catch (Exception ignored) {}
                     } else if (diff < 0) {
                         controladores.getStockController().agregarStock(codigo, -diff, cliente.getCodigo());
+                        try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "LIBERAR_STOCK", "EXITOSA", String.format("Ajuste carrito (editor): Cliente %s liberó %d de %s", cliente.getCodigo(), -diff, codigo)); } catch (Exception ignored) {}
                     }
                     double precio = Double.parseDouble(modeloCarrito.getValueAt(row, 3).toString());
                     // stop editing and then update model on EDT to avoid concurrent modification
@@ -310,6 +319,7 @@ public class MenuCliente extends JPanel {
                     String codigo = (String) modeloCarrito.getValueAt(row, 0);
                     int cantidad = Integer.parseInt(modeloCarrito.getValueAt(row, 2).toString());
                     controladores.getStockController().agregarStock(codigo, cantidad, cliente.getCodigo());
+                    try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "LIBERAR_STOCK", "EXITOSA", String.format("Eliminar carrito (editor): Cliente %s liberó %d de %s", cliente.getCodigo(), cantidad, codigo)); } catch (Exception ignored) {}
                     if (row >= 0 && row < modeloCarrito.getRowCount()) modeloCarrito.removeRow(row);
                     actualizarTotalCarrito(lblTotal);
                     tablaCarrito.repaint(); tablaCarrito.revalidate();
@@ -343,8 +353,10 @@ public class MenuCliente extends JPanel {
                 Pedido[] arr = mis.toArray(new Pedido[0]);
                 util.PdfUtil.generarReportePedidos(destino, arr);
                 JOptionPane.showMessageDialog(this, "Reporte generado: " + destino.getAbsolutePath());
+                try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "EXPORTAR_PEDIDOS", "EXITOSA", destino.getName()); } catch (Exception ignored) {}
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error generando PDF: " + ex.getMessage());
+                try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "EXPORTAR_PEDIDOS", "FALLIDA", ex.getMessage()); } catch (Exception ignored) {}
             }
         }
     }
@@ -366,6 +378,7 @@ public class MenuCliente extends JPanel {
             // reservar stock temporalmente
             boolean ok = controladores.getStockController().agregarStock(codigo, -cantidad, cliente.getCodigo());
             if (!ok) { JOptionPane.showMessageDialog(this, "No se pudo reservar stock"); return; }
+            try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "RESERVAR_STOCK", "EXITOSA", String.format("Reserva: Cliente %s, Producto %s, Cantidad=%d", cliente.getCodigo(), codigo, cantidad)); } catch (Exception ignored) {}
             double precio = (double) modeloCatalogo.getValueAt(row, 4);
             String nombre = (String) modeloCatalogo.getValueAt(row,1);
             modeloCarrito.addRow(new Object[]{codigo, nombre, cantidad, precio, cantidad * precio});
@@ -381,6 +394,7 @@ public class MenuCliente extends JPanel {
             String codigo = (String) modeloCarrito.getValueAt(row, 0);
             int cantidad = (int) modeloCarrito.getValueAt(row, 2);
             controladores.getStockController().agregarStock(codigo, cantidad, cliente.getCodigo());
+            try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "LIBERAR_STOCK", "EXITOSA", String.format("Eliminar selección (método): Cliente %s liberó Producto %s Cant=%d", cliente.getCodigo(), codigo, cantidad)); } catch (Exception ignored) {}
             modeloCarrito.removeRow(row);
         }
     }
@@ -403,8 +417,10 @@ public class MenuCliente extends JPanel {
                 int stock = controladores.getStockController().getStock(codigo);
                 if (stock < diff) { JOptionPane.showMessageDialog(this, "Stock insuficiente"); return; }
                 controladores.getStockController().agregarStock(codigo, -diff, cliente.getCodigo());
+                    try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "RESERVAR_STOCK", "EXITOSA", String.format("Actualizar cantidad (método): Cliente %s reservó +%d de %s", cliente.getCodigo(), diff, codigo)); } catch (Exception ignored) {}
             } else if (diff < 0) {
                 controladores.getStockController().agregarStock(codigo, -diff, cliente.getCodigo());
+                    try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "LIBERAR_STOCK", "EXITOSA", String.format("Actualizar cantidad (método): Cliente %s liberó %d de %s", cliente.getCodigo(), -diff, codigo)); } catch (Exception ignored) {}
             }
             double precio = (double) modeloCarrito.getValueAt(row, 3);
             modeloCarrito.setValueAt(cantidad, row, 2);
@@ -423,6 +439,7 @@ public class MenuCliente extends JPanel {
         Pedido pedido = controladores.getPedidoController().crearPedidoDesdeCarrito(cliente.getCodigo(), modeloCarrito);
         if (pedido != null) {
             JOptionPane.showMessageDialog(this, "Pedido creado: " + pedido.getCodigo());
+            try { controladores.getBitacoraController().registrar(cliente.getRol(), cliente.getCodigo(), "CREAR_PEDIDO", "EXITOSA", String.format("Pedido %s creado desde carrito - Total: %.2f", pedido.getCodigo(), pedido.getTotal())); } catch (Exception ignored) {}
             modeloCarrito.setRowCount(0);
             // Después de crear el pedido, el historial puede actualizarse por si hay pedidos confirmados
             // (la recarga real del modelo de historial la realiza cargarHistorial cuando se necesite)

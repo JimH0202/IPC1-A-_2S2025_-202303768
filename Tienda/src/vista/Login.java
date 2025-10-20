@@ -75,8 +75,6 @@ public class Login extends JFrame {
                 dispose();
                 VentanaPrincipal vp = new VentanaPrincipal(user, controladores);
                 vp.setVisible(true);
-                // arrancar monitores cuando la ventana ya esté visible
-                vp.startMonitors(controladores);
             } catch (Exception ex) {
                 lbStatus.setText("Error al autenticar");
                 ex.printStackTrace();

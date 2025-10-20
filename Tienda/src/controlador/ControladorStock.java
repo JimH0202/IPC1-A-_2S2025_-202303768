@@ -82,17 +82,31 @@ public class ControladorStock {
     }
 
     public boolean agregarStock(String codigo, int cantidadAgregar, String codigoUsuario) {
-        if (cantidadAgregar == 0) return false; // permitir negativos para descuento
+        if (cantidadAgregar == 0) return false; // no hay cambio
         int idx = indice(codigo);
+        int antes = 0;
         if (idx < 0) {
             agregarRegistro(codigo, cantidadAgregar, 0.0);
+            antes = 0;
+            idx = indice(codigo);
         } else {
+            antes = stocks[idx];
             stocks[idx] += cantidadAgregar;
         }
+        int despues = (idx >= 0) ? stocks[idx] : cantidadAgregar;
         // registrar movimiento en CSV de historial
         registrarHistorial(codigo, cantidadAgregar, codigoUsuario);
         guardarPersistencia();
-        bitacora.registrar("VENDEDOR", codigoUsuario, "AGREGAR_STOCK", "EXITOSA", "Producto " + codigo + " Cant:" + cantidadAgregar);
+        String desc = String.format("Stock actualizado: Producto %s, Usuario %s, Antes=%d, Cambio=%+d, Ahora=%d", codigo, codigoUsuario, antes, cantidadAgregar, despues);
+        // intentar inferir rol a partir del código de usuario para registros más descriptivos
+        String tipo = "USUARIO";
+        if (codigoUsuario != null) {
+            String lc = codigoUsuario.toLowerCase();
+            if (lc.startsWith("v")) tipo = "VENDEDOR";
+            else if (lc.startsWith("c")) tipo = "CLIENTE";
+            else if (lc.equals("admin") || lc.startsWith("a")) tipo = "ADMIN";
+        }
+        bitacora.registrar(tipo, codigoUsuario == null ? "-" : codigoUsuario, "AGREGAR_STOCK", "EXITOSA", desc);
         return true;
     }
 
@@ -110,9 +124,24 @@ public class ControladorStock {
                 try { cantidad = Integer.parseInt(parts[1].trim()); } catch (NumberFormatException ignored) {}
                 agregarStock(codigo, cantidad, usuarioCodigo);
             }
-            bitacora.registrar("VENDEDOR", usuarioCodigo, "CARGA_CSV_STOCK", "EXITOSA", file.getName());
+            // inferir rol del usuario que hizo la carga
+            String tipo = "USUARIO";
+            if (usuarioCodigo != null) {
+                String lc = usuarioCodigo.toLowerCase();
+                if (lc.startsWith("v")) tipo = "VENDEDOR";
+                else if (lc.startsWith("c")) tipo = "CLIENTE";
+                else if (lc.equals("admin") || lc.startsWith("a")) tipo = "ADMIN";
+            }
+            bitacora.registrar(tipo, usuarioCodigo == null ? "-" : usuarioCodigo, "CARGA_CSV_STOCK", "EXITOSA", file.getName());
         } catch (Exception e) {
-            bitacora.registrar("VENDEDOR", usuarioCodigo, "CARGA_CSV_STOCK", "FALLIDA", e.getMessage());
+            String tipo2 = "USUARIO";
+            if (usuarioCodigo != null) {
+                String lc2 = usuarioCodigo.toLowerCase();
+                if (lc2.startsWith("v")) tipo2 = "VENDEDOR";
+                else if (lc2.startsWith("c")) tipo2 = "CLIENTE";
+                else if (lc2.equals("admin") || lc2.startsWith("a")) tipo2 = "ADMIN";
+            }
+            bitacora.registrar(tipo2, usuarioCodigo == null ? "-" : usuarioCodigo, "CARGA_CSV_STOCK", "FALLIDA", file.getName() + " : " + e.getMessage());
         }
     }
 
