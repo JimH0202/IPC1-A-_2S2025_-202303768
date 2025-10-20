@@ -1,7 +1,5 @@
 package vista;
 
-import util.CSVUtil;
-import util.PdfUtil;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -9,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import util.CSVUtil;
+import util.PdfUtil;
 
 /**
  * Diálogo simple para ver el historial de ingresos (CSV) generado por el sistema.
@@ -16,6 +16,7 @@ import javax.swing.table.DefaultTableModel;
 public class DialogHistorialIngresos extends JDialog {
     private final DefaultTableModel modelo;
     private final JTable tabla;
+    private String filtroProducto = null;
 
     public DialogHistorialIngresos(Window owner) {
         super(owner, "Historial de Ingresos", ModalityType.APPLICATION_MODAL);
@@ -44,15 +45,16 @@ public class DialogHistorialIngresos extends JDialog {
 
     public DialogHistorialIngresos(Window owner, String filtroCodigoProducto) {
         this(owner);
+        this.filtroProducto = (filtroCodigoProducto == null || filtroCodigoProducto.trim().isEmpty()) ? null : filtroCodigoProducto.trim();
         // aplicar filtro tras cargar
-        if (filtroCodigoProducto != null && !filtroCodigoProducto.trim().isEmpty()) {
+        if (this.filtroProducto != null) {
             // filtrar filas actuales
             for (int r = modelo.getRowCount()-1; r >= 0; r--) {
                 Object nombre = modelo.getValueAt(r, 3); // columna nombre producto
                 Object codigoCol = modelo.getValueAt(r, 1); // si hubiera codigo en ese campo
                 String n = nombre == null ? "" : nombre.toString();
                 String c = codigoCol == null ? "" : codigoCol.toString();
-                if (!n.equalsIgnoreCase(filtroCodigoProducto) && !c.equalsIgnoreCase(filtroCodigoProducto)) modelo.removeRow(r);
+                if (!n.equalsIgnoreCase(this.filtroProducto) && !c.equalsIgnoreCase(this.filtroProducto)) modelo.removeRow(r);
             }
         }
     }
@@ -85,8 +87,13 @@ public class DialogHistorialIngresos extends JDialog {
 
     private void exportarCSV() {
         JFileChooser ch = new JFileChooser();
+        // sugerir nombre por defecto
+        String sugerencia = "Historial_ingresos_" + (filtroProducto == null ? "general" : filtroProducto) + ".csv";
+        ch.setSelectedFile(new File(sugerencia));
         if (ch.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             File out = ch.getSelectedFile();
+            // asegurar extensión .csv
+            if (!out.getName().toLowerCase().endsWith(".csv")) out = new File(out.getAbsolutePath() + ".csv");
             List<String> lines = new ArrayList<>();
             for (int r = 0; r < modelo.getRowCount(); r++) {
                 StringBuilder sb = new StringBuilder();
@@ -108,8 +115,12 @@ public class DialogHistorialIngresos extends JDialog {
 
     private void exportarPDF() {
         JFileChooser ch = new JFileChooser();
+        // sugerir nombre por defecto
+        String sugerencia = "Historial_ingresos_" + (filtroProducto == null ? "general" : filtroProducto) + ".pdf";
+        ch.setSelectedFile(new File(sugerencia));
         if (ch.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             File out = ch.getSelectedFile();
+            if (!out.getName().toLowerCase().endsWith(".pdf")) out = new File(out.getAbsolutePath() + ".pdf");
             // construir filas para PdfUtil
             List<String[]> filas = new ArrayList<>();
             for (int r = 0; r < modelo.getRowCount(); r++) {
@@ -122,8 +133,22 @@ public class DialogHistorialIngresos extends JDialog {
                 for (int i = 0; i < headers.length; i++) headers[i] = modelo.getColumnName(i);
                 PdfUtil.generarReporteTabla(out, "Historial de ingresos", headers, filas);
                 JOptionPane.showMessageDialog(this, "PDF exportado: " + out.getAbsolutePath());
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error exportando PDF: " + ex.getMessage());
+            } catch (Throwable t) {
+                // Atrapar Throwable para incluir NoClassDefFoundError u otros errores de la librería iText
+                t.printStackTrace();
+                // buscar causa que indique falta de clase de iText
+                boolean missingIText = false;
+                Throwable x = t;
+                while (x != null) {
+                    if (x instanceof NoClassDefFoundError || x.getMessage() != null && x.getMessage().contains("com.itextpdf")) { missingIText = true; break; }
+                    x = x.getCause();
+                }
+                if (missingIText) {
+                    JOptionPane.showMessageDialog(this, "Error exportando PDF: falta la librería iText en el classpath. Ejecute la aplicación con 'librerias\\itextpdf-5.5.12.jar' en el classpath. (ver consola para más detalles)");
+                } else {
+                    String msg = t.getMessage() == null ? t.toString() : t.getMessage();
+                    JOptionPane.showMessageDialog(this, "Error exportando PDF: " + msg + " (ver consola para más detalles)");
+                }
             }
         }
     }
