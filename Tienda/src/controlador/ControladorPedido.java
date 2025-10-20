@@ -15,7 +15,6 @@ public class ControladorPedido {
     private Pedido[] pedidos;
     private int cantidad;
     private final File persistFile = new File("pedidos.ser");
-    private final ControladorProducto productoController;
     private final ControladorStock stockController;
     private final ControladorUsuario usuarioController;
     private final ControladorBitacora bitacora;
@@ -24,13 +23,18 @@ public class ControladorPedido {
                              ControladorStock stockController,
                              ControladorUsuario usuarioController,
                              ControladorBitacora bitacora) {
-        this.productoController = productoController;
         this.stockController = stockController;
         this.usuarioController = usuarioController;
         this.bitacora = bitacora;
         this.pedidos = new Pedido[200];
         this.cantidad = 0;
         cargarPersistencia();
+    }
+
+    public ControladorPedido(ControladorBitacora bitacora, ControladorStock stockController, ControladorUsuario usuarioController) {
+        this.bitacora = bitacora;
+        this.stockController = stockController;
+        this.usuarioController = usuarioController;
     }
 
     public Pedido crearPedidoDesdeCarrito(String codigoCliente, DefaultTableModel modeloCarrito) {
@@ -42,7 +46,7 @@ public class ControladorPedido {
         double total = 0.0;
         for (int i = 0; i < modeloCarrito.getRowCount(); i++) {
             String codigoProducto = (String) modeloCarrito.getValueAt(i, 0);
-            int cantidad = (int) modeloCarrito.getValueAt(i, 2);
+            final int cantidad = (int) modeloCarrito.getValueAt(i, 2);
             double precio = (double) modeloCarrito.getValueAt(i, 3);
             pedido.agregarLinea(codigoProducto, cantidad, precio);
             total += cantidad * precio;
@@ -92,6 +96,10 @@ public class ControladorPedido {
                 p.setConfirmado(true);
                 p.setVendedorConfirmador(codigoVendedor);
                 guardarPersistencia();
+                // incrementar contador de ventas confirmadas del vendedor
+                if (usuarioController != null) {
+                    usuarioController.incrementarVentasConfirmadas(codigoVendedor, 1);
+                }
                 bitacora.registrar("VENDEDOR", codigoVendedor, "CONFIRMAR_PEDIDO", "EXITOSA", codigoPedido);
                 return true;
             }
@@ -134,5 +142,13 @@ public class ControladorPedido {
         Pedido[] n = new Pedido[arr.length * 2];
         System.arraycopy(arr, 0, n, 0, arr.length);
         return n;
+    }
+
+    public ControladorStock getStockController() {
+        return stockController;
+    }
+
+    public ControladorUsuario getUsuarioController() {
+        return usuarioController;
     }
 }

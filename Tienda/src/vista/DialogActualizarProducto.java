@@ -21,13 +21,15 @@ public class DialogActualizarProducto extends JDialog {
             return;
         }
 
-        JPanel form = new JPanel(new GridLayout(4,2,6,6));
-        form.setBorder(BorderFactory.createEmptyBorder(8,8,8,8));
-        JTextField tfNombre = new JTextField(p.getNombre());
-        JTextField tfAtributo = new JTextField();
-        form.add(new JLabel("Código:")); form.add(new JLabel(p.getCodigo()));
-        form.add(new JLabel("Nombre:")); form.add(tfNombre);
-        form.add(new JLabel("Atributo (según categoría):")); form.add(tfAtributo);
+    JPanel form = new JPanel(new GridLayout(6,2,6,6));
+    form.setBorder(BorderFactory.createEmptyBorder(8,8,8,8));
+    JTextField tfNombre = new JTextField(p.getNombre());
+    JTextField tfAtributo = new JTextField();
+    JTextField tfPrecio = new JTextField(String.valueOf(p.getPrecio()));
+    form.add(new JLabel("Código:")); form.add(new JLabel(p.getCodigo()));
+    form.add(new JLabel("Nombre:")); form.add(tfNombre);
+    form.add(new JLabel("Atributo (según categoría):")); form.add(tfAtributo);
+    form.add(new JLabel("Precio:")); form.add(tfPrecio);
 
         add(form, BorderLayout.CENTER);
 
@@ -46,6 +48,7 @@ public class DialogActualizarProducto extends JDialog {
                 return;
             }
             boolean ok = controlador.actualizarProducto(p.getCodigo(), nuevoNombre, nuevoAtributo);
+            try { double pr = Double.parseDouble(tfPrecio.getText().trim()); controlador.setPrecioProducto(p.getCodigo(), pr); } catch (Exception ignored) {}
             if (!ok) JOptionPane.showMessageDialog(this, "No fue posible actualizar"); else dispose();
         });
     }

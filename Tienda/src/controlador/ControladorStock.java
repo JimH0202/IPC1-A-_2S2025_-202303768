@@ -82,7 +82,7 @@ public class ControladorStock {
     }
 
     public boolean agregarStock(String codigo, int cantidadAgregar, String codigoUsuario) {
-        if (cantidadAgregar <= 0) return false;
+        if (cantidadAgregar == 0) return false; // permitir negativos para descuento
         int idx = indice(codigo);
         if (idx < 0) {
             agregarRegistro(codigo, cantidadAgregar, 0.0);
@@ -118,8 +118,17 @@ public class ControladorStock {
 
     private void registrarHistorial(String codigo, int cantidadAgregada, String usuario) {
         String nombreArchivo = "historial_ingresos.csv";
-        DateTimeFormatter f = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-        String linea = LocalDateTime.now().format(f) + "," + codigo + "," + cantidadAgregada + "," + usuario;
+        DateTimeFormatter fDate = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter fTime = DateTimeFormatter.ofPattern("HH:mm:ss");
+        String fecha = LocalDateTime.now().format(fDate);
+        String hora = LocalDateTime.now().format(fTime);
+        // intentar obtener nombre del producto desde el controlador de producto
+        String nombreProducto = codigo;
+        try {
+            modelo.Producto p = productoController.buscarProducto(codigo);
+            if (p != null) nombreProducto = p.getNombre();
+        } catch (Exception ignored) {}
+        String linea = fecha + "," + hora + "," + usuario + "," + nombreProducto + "," + cantidadAgregada;
         try (FileWriter fw = new FileWriter(nombreArchivo, true); BufferedWriter bw = new BufferedWriter(fw)) {
             bw.write(linea);
             bw.newLine();

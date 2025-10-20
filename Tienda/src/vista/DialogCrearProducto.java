@@ -27,11 +27,13 @@ public class DialogCrearProducto extends JDialog {
         JTextField tfNombre = new JTextField();
         JComboBox<String> cbCategoria = new JComboBox<>(new String[]{"Tecnologia","Alimento","Generales"});
         JTextField tfAtributo = new JTextField();
+    JTextField tfPrecio = new JTextField();
 
         form.add(new JLabel("Código:")); form.add(tfCodigo);
         form.add(new JLabel("Nombre:")); form.add(tfNombre);
         form.add(new JLabel("Categoría:")); form.add(cbCategoria);
         form.add(new JLabel("Atributo (según categoría):")); form.add(tfAtributo);
+    form.add(new JLabel("Precio:")); form.add(tfPrecio);
 
         add(form, BorderLayout.CENTER);
 
@@ -65,7 +67,13 @@ public class DialogCrearProducto extends JDialog {
                     p = new ProductoGeneral(codigo, nombre, atributo);
                 }
                 boolean ok = controlador.crearProducto(p);
-                if (!ok) JOptionPane.showMessageDialog(this, "Código ya existe"); else dispose();
+                if (ok) {
+                    try {
+                        double pr = Double.parseDouble(tfPrecio.getText().trim());
+                        controlador.setPrecioProducto(p.getCodigo(), pr);
+                    } catch (Exception ignored) {}
+                    dispose();
+                } else JOptionPane.showMessageDialog(this, "Código ya existe");
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
             }

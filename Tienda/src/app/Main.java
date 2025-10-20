@@ -13,7 +13,7 @@ public class Main {
         try {
             // Look and feel del sistema
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ignored) { }
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ignored) { }
 
         // Inicializar controladores compartidos
         final Controladores controladores = new Controladores();

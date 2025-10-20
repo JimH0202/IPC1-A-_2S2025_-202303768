@@ -43,7 +43,7 @@ public final class PdfUtil {
         doc.add(new Paragraph(" ", NORMAL));
     }
 
-    public static void generarReporteProductos(java.io.File destino, Producto[] productos) throws IOException, DocumentException {
+    public static void generarReporteProductos(java.io.File destino, Producto[] productos) throws Exception {
         Document doc = new Document(PageSize.A4.rotate(), 36, 36, 36, 36);
         PdfWriter.getInstance(doc, new FileOutputStream(destino));
         doc.open();
@@ -76,7 +76,7 @@ public final class PdfUtil {
         return ts + "_" + tipo + ".pdf";
     }
 
-    public static void generarReporteTopVendidos(java.io.File destino, java.util.List<util.ReportesUtil.ProductoVenta> top) throws IOException, DocumentException {
+    public static void generarReporteTopVendidos(java.io.File destino, java.util.List<util.ReportesUtil.ProductoVenta> top) throws Exception {
         Document doc = new Document(PageSize.A4, 36,36,36,36);
         PdfWriter.getInstance(doc, new FileOutputStream(destino));
         doc.open();
@@ -95,7 +95,7 @@ public final class PdfUtil {
         doc.close();
     }
 
-    public static void generarReportePedidos(java.io.File destino, Pedido[] pedidos) throws IOException, DocumentException {
+    public static void generarReportePedidos(java.io.File destino, Pedido[] pedidos) throws Exception {
         Document doc = new Document(PageSize.A4, 36, 36, 36, 36);
         PdfWriter.getInstance(doc, new FileOutputStream(destino));
         doc.open();
@@ -124,7 +124,48 @@ public final class PdfUtil {
         doc.close();
     }
 
-    public static void generarReporteVentasPorVendedor(java.io.File destino, util.ReportesUtil.VendedorVenta[] ventas) throws IOException, DocumentException {
+    /**
+     * Versión que recibe controladores para resolver nombres (cliente, producto, vendedor)
+     */
+    public static void generarReportePedidos(java.io.File destino, controlador.Controladores controladores, Pedido[] pedidos) throws Exception {
+        // reutiliza la anterior pero traduce códigos a nombres
+        if (pedidos == null) { generarReportePedidos(destino, pedidos); return; }
+        // crear tabla con más detalle: pedido (código, fecha, cliente nombre, vendedor), luego lineas con nombre producto, cantidad, precio unit.
+        Document doc = new Document(PageSize.A4, 36, 36, 36, 36);
+        PdfWriter.getInstance(doc, new FileOutputStream(destino));
+        doc.open();
+        addReportHeader(doc, "Reporte de Pedidos (detallado)");
+        for (Pedido p : pedidos) {
+            String nombreCliente = p.getCodigoCliente();
+            modelo.Usuario u = controladores.getUsuarioController().buscarPorCodigo(p.getCodigoCliente());
+            if (u != null) nombreCliente = u.getNombre();
+            String vendedor = p.getVendedorConfirmador() == null ? "-" : p.getVendedorConfirmador();
+            modelo.Usuario uv = controladores.getUsuarioController().buscarPorCodigo(p.getVendedorConfirmador());
+            if (uv != null) vendedor = uv.getNombre();
+            Paragraph pHeader = new Paragraph(String.format("Pedido: %s   Fecha: %s   Cliente: %s   Vendedor: %s   Total: %s", p.getCodigo(), p.getFechaHora(), nombreCliente, vendedor, DF.format(p.getTotal())), NORMAL);
+            doc.add(pHeader);
+            PdfPTable table = new PdfPTable(new float[]{4, 2, 2, 2});
+            table.setWidthPercentage(100);
+            addHeaderCell(table, "Producto");
+            addHeaderCell(table, "Nombre Producto");
+            addHeaderCell(table, "Cantidad");
+            addHeaderCell(table, "Precio Unit.");
+            for (Pedido.Linea l : p.getLineas()) {
+                addCell(table, l.getCodigoProducto());
+                String prodName = l.getCodigoProducto();
+                modelo.Producto prod = controladores.getProductoController().buscarProducto(l.getCodigoProducto());
+                if (prod != null) prodName = prod.getNombre();
+                addCell(table, prodName);
+                addCell(table, String.valueOf(l.getCantidad()));
+                addCell(table, DF.format(l.getPrecioUnitario()));
+            }
+            doc.add(table);
+            doc.add(new Paragraph(" ", NORMAL));
+        }
+        doc.close();
+    }
+
+    public static void generarReporteVentasPorVendedor(java.io.File destino, util.ReportesUtil.VendedorVenta[] ventas) throws Exception {
         Document doc = new Document(PageSize.A4, 36,36,36,36);
         PdfWriter.getInstance(doc, new FileOutputStream(destino));
         doc.open();
@@ -137,7 +178,7 @@ public final class PdfUtil {
         doc.close();
     }
 
-    public static void generarReporteClientesActivos(java.io.File destino, util.ReportesUtil.ClienteAct[] clientes) throws IOException, DocumentException {
+    public static void generarReporteClientesActivos(java.io.File destino, util.ReportesUtil.ClienteAct[] clientes) throws Exception {
         Document doc = new Document(PageSize.A4, 36,36,36,36);
         PdfWriter.getInstance(doc, new FileOutputStream(destino));
         doc.open();
@@ -148,7 +189,7 @@ public final class PdfUtil {
         doc.add(table); doc.close();
     }
 
-    public static void generarReporteResumenFinanciero(java.io.File destino, util.ReportesUtil.ResumenFinanciero r) throws IOException, DocumentException {
+    public static void generarReporteResumenFinanciero(java.io.File destino, util.ReportesUtil.ResumenFinanciero r) throws Exception {
         Document doc = new Document(PageSize.A4, 36,36,36,36);
         PdfWriter.getInstance(doc, new FileOutputStream(destino));
         doc.open();
@@ -159,7 +200,7 @@ public final class PdfUtil {
         doc.close();
     }
 
-    public static void generarReporteProductosPorCaducar(java.io.File destino, util.ReportesUtil.ProductoPorCaducar[] arr) throws IOException, DocumentException {
+    public static void generarReporteProductosPorCaducar(java.io.File destino, util.ReportesUtil.ProductoPorCaducar[] arr) throws Exception {
         Document doc = new Document(PageSize.A4, 36,36,36,36);
         PdfWriter.getInstance(doc, new FileOutputStream(destino));
         doc.open();
@@ -170,7 +211,7 @@ public final class PdfUtil {
         doc.add(table); doc.close();
     }
 
-    public static void generarReporteInventarioCritico(java.io.File destino, util.ReportesUtil.StockEstado[] arr) throws IOException, DocumentException {
+    public static void generarReporteInventarioCritico(java.io.File destino, util.ReportesUtil.StockEstado[] arr) throws Exception {
         Document doc = new Document(PageSize.A4, 36,36,36,36);
         PdfWriter.getInstance(doc, new FileOutputStream(destino));
         doc.open();
@@ -179,6 +220,23 @@ public final class PdfUtil {
         addHeaderCell(table, "Codigo"); addHeaderCell(table, "Nombre"); addHeaderCell(table, "Stock"); addHeaderCell(table, "Estado");
         if (arr != null) for (util.ReportesUtil.StockEstado s : arr) { addCell(table, s.codigo); addCell(table, s.nombre); addCell(table, String.valueOf(s.stock)); addCell(table, s.estado); }
         doc.add(table); doc.close();
+    }
+
+    /**
+     * Genera un PDF simple con las líneas de la bitácora.
+     */
+    public static void generarReporteBitacora(java.io.File destino, java.util.List<String> lineas) throws Exception {
+        Document doc = new Document(PageSize.A4, 36,36,36,36);
+        PdfWriter.getInstance(doc, new FileOutputStream(destino));
+        doc.open();
+        addReportHeader(doc, "Bitácora del Sistema");
+        if (lineas != null) {
+            for (String l : lineas) {
+                Paragraph p = new Paragraph(l == null ? "" : l, NORMAL);
+                doc.add(p);
+            }
+        }
+        doc.close();
     }
 
     private static void addHeaderCell(PdfPTable table, String text) {
@@ -192,5 +250,30 @@ public final class PdfUtil {
         PdfPCell c = new PdfPCell(new Phrase(text == null ? "" : text, NORMAL));
         c.setPadding(4);
         table.addCell(c);
+    }
+
+    /**
+     * Generador genérico de tablas para reportes: recibe encabezados y filas (cada fila es String[])
+     */
+    public static void generarReporteTabla(java.io.File destino, String titulo, String[] headers, java.util.List<String[]> filas) throws Exception {
+        Document doc = new Document(PageSize.A4.rotate(), 36,36,36,36);
+        PdfWriter.getInstance(doc, new FileOutputStream(destino));
+        doc.open();
+        addReportHeader(doc, titulo);
+        if (headers == null) headers = new String[0];
+        PdfPTable table = new PdfPTable(headers.length > 0 ? headers.length : 1);
+        table.setWidthPercentage(100);
+        for (String h : headers) addHeaderCell(table, h);
+        if (filas != null) {
+            for (String[] row : filas) {
+                if (row == null) continue;
+                for (int i = 0; i < headers.length; i++) {
+                    String v = i < row.length ? row[i] : "";
+                    addCell(table, v);
+                }
+            }
+        }
+        doc.add(table);
+        doc.close();
     }
 }

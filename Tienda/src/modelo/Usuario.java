@@ -23,6 +23,8 @@ public abstract class Usuario implements Serializable {
 
     public void setNombre(String nombre) { this.nombre = nombre; }
 
+    public void setGenero(String genero) { this.genero = genero; }
+
     public void setPassword(String contrasena) {
         if (contrasena == null) this.passwordHash = null; else this.passwordHash = util.PasswordUtil.hashPassword(contrasena);
     }

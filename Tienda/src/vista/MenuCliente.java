@@ -77,7 +77,9 @@ public class MenuCliente extends JPanel {
         if (productos == null) return;
         for (Producto p : productos) {
             int stock = controladores.getStockController().getStock(p.getCodigo());
-            double precio = controladores.getStockController().getPrecio(p.getCodigo());
+            double precio = 0.0;
+            modelo.Producto prod = controladores.getProductoController().buscarProducto(p.getCodigo());
+            if (prod != null) precio = prod.getPrecio(); else precio = controladores.getStockController().getPrecio(p.getCodigo());
             modeloCatalogo.addRow(new Object[]{p.getCodigo(), p.getNombre(), p.getCategoria(), stock, precio});
         }
     }

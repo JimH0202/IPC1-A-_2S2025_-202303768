@@ -75,6 +75,19 @@ public class ControladorUsuario {
         return true;
     }
 
+    /**
+     * Incrementa el contador de ventas confirmadas de un vendedor y persiste el cambio.
+     */
+    public boolean incrementarVentasConfirmadas(String codigoVendedor, int delta) {
+        Usuario u = buscarPorCodigo(codigoVendedor);
+        if (u == null || !(u instanceof Vendedor)) return false;
+        Vendedor v = (Vendedor) u;
+        v.incrementarVentasConfirmadas(delta);
+        guardarPersistencia();
+        bitacora.registrar(v.getRol(), v.getCodigo(), "INCREMENTAR_VENTAS", "EXITOSA", "+" + delta);
+        return true;
+    }
+
     public Usuario buscarPorCodigo(String codigo) {
         for (Usuario u : usuarios) if (u.getCodigo().equalsIgnoreCase(codigo)) return u;
         return null;
@@ -86,26 +99,35 @@ public class ControladorUsuario {
         return out.toArray(new Usuario[0]);
     }
 
-    public void cargarVendedoresDesdeCSV(File file) {
+    public util.CargaCSVResult cargarVendedoresDesdeCSV(File file) {
+        util.CargaCSVResult res = new util.CargaCSVResult();
         // Formato: Código, Nombre, Género, Contraseña, confirmados (ignore confirmados)
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
+            String line; int lineaNum = 0;
             while ((line = br.readLine()) != null) {
+                lineaNum++;
                 line = line.trim();
                 if (line.isEmpty()) continue;
+                res.procesadas++;
                 String[] parts = line.split(",");
-                if (parts.length < 4) continue;
+                if (parts.length < 4) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": formato invalido"); continue; }
                 String codigo = parts[0].trim();
                 String nombre = parts[1].trim();
                 String genero = parts[2].trim();
                 String contrasena = parts[3].trim();
+                if (codigo.isEmpty() || nombre.isEmpty() || contrasena.isEmpty()) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": campos vacios"); continue; }
+                if (buscarPorCodigo(codigo) != null) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": codigo ya existe: " + codigo); continue; }
                 Vendedor v = new Vendedor(codigo, nombre, genero, contrasena);
                 agregarUsuario(v);
+                res.aceptadas++;
             }
-            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_VENDEDORES", "EXITOSA", "Carga CSV vendedores");
+            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_VENDEDORES", "EXITOSA", "Carga CSV vendedores: " + res.resumen());
         } catch (Exception e) {
+            res.rechazadas++;
+            res.errores.add("Error lectura: " + e.getMessage());
             bitacora.registrar("ADMIN", "admin", "CARGA_CSV_VENDEDORES", "FALLIDA", e.getMessage());
         }
+        return res;
     }
 
     public void cargarClientesDesdeCSV(File file) {

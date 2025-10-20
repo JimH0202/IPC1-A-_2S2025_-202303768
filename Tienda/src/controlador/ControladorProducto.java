@@ -1,13 +1,12 @@
 package controlador;
 
+import java.io.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import modelo.Producto;
 import modelo.ProductoAlimento;
 import modelo.ProductoGeneral;
 import modelo.ProductoTecnologia;
-
-import java.io.*;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 /**
  * Controlador para gestión de productos y stock/ precio asociados (stock y precios se mantienen en ControladorStock).
@@ -60,6 +59,18 @@ public class ControladorProducto {
         return true;
     }
 
+    /**
+     * Permite establecer el precio asociado a un producto (delegable al ControladorStock si se necesita).
+     */
+    public boolean setPrecioProducto(String codigo, double precio) {
+        Producto p = buscarProducto(codigo);
+        if (p == null) return false;
+        p.setPrecio(precio);
+        guardarPersistencia();
+        bitacora.registrar("ADMIN", "admin", "ACTUALIZAR_PRECIO", "EXITOSA", codigo + "->" + precio);
+        return true;
+    }
+
     public boolean eliminarProducto(String codigo) {
         int idx = indicePorCodigo(codigo);
         if (idx < 0) return false;
@@ -87,36 +98,45 @@ public class ControladorProducto {
         return listarProductos();
     }
 
-    public void cargarDesdeCSV(File file) {
+    public util.CargaCSVResult cargarDesdeCSV(File file) {
+        util.CargaCSVResult res = new util.CargaCSVResult();
         // Formato: codigo,nombre,categoria,atributo_unico
         DateTimeFormatter f = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
+            String line; int lineaNum = 0;
             while ((line = br.readLine()) != null) {
+                lineaNum++;
                 line = line.trim();
                 if (line.isEmpty()) continue;
+                res.procesadas++;
                 String[] parts = line.split(",");
-                if (parts.length < 4) continue;
+                if (parts.length < 4) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": formato invalido"); continue; }
                 String codigo = parts[0].trim();
                 String nombre = parts[1].trim();
                 String categoria = parts[2].trim();
                 String atributo = parts[3].trim();
+                if (codigo.isEmpty() || nombre.isEmpty()) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": codigo/nombre vacio"); continue; }
+                if (buscarProducto(codigo) != null) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": codigo ya existe: " + codigo); continue; }
                 Producto p = null;
                 if (categoria.equalsIgnoreCase("Tecnologia")) {
                     int meses = 0;
-                    try { meses = Integer.parseInt(atributo); } catch (NumberFormatException ignored) {}
+                    try { meses = Integer.parseInt(atributo); } catch (NumberFormatException ignored) { res.errores.add("Linea " + lineaNum + ": atributo meses invalido, se puso 0"); }
                     p = new ProductoTecnologia(codigo, nombre, meses);
                 } else if (categoria.equalsIgnoreCase("Alimento")) {
-                    try { p = new ProductoAlimento(codigo, nombre, LocalDate.parse(atributo, f)); } catch (Exception ex) { p = new ProductoAlimento(codigo, nombre, LocalDate.now()); }
+                    try { p = new ProductoAlimento(codigo, nombre, LocalDate.parse(atributo, f)); } catch (Exception ex) { p = new ProductoAlimento(codigo, nombre, LocalDate.now()); res.errores.add("Linea " + lineaNum + ": fecha invalida, se uso hoy"); }
                 } else {
                     p = new ProductoGeneral(codigo, nombre, atributo);
                 }
                 crearProducto(p);
+                res.aceptadas++;
             }
-            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_PRODUCTOS", "EXITOSA", file.getName());
+            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_PRODUCTOS", "EXITOSA", file.getName() + " -> " + res.resumen());
         } catch (Exception e) {
+            res.rechazadas++;
+            res.errores.add("Error lectura: " + e.getMessage());
             bitacora.registrar("ADMIN", "admin", "CARGA_CSV_PRODUCTOS", "FALLIDA", e.getMessage());
         }
+        return res;
     }
 
     /* Persistencia */

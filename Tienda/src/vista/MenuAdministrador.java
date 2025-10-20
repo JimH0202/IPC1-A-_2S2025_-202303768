@@ -7,6 +7,14 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import modelo.Producto;
 import modelo.Vendedor;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableCellEditor;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import vista.DialogBitacoraViewer;
 
 /**
  * Panel principal para el Administrador con pestañas: Vendedores, Productos, Reportes
@@ -60,27 +68,32 @@ public class MenuAdministrador extends JPanel {
         cargarVendedoresEnTabla(modelo);
 
         btnCrear.addActionListener(e -> {
-            DialogCrearVendedor d = new DialogCrearVendedor(SwingUtilities.getWindowAncestor(this), controladores.getUsuarioController());
+            DialogCrearVendedor d = new DialogCrearVendedor(SwingUtilities.getWindowAncestor(MenuAdministrador.this), controladores.getUsuarioController());
             d.setVisible(true);
             cargarVendedoresEnTabla(modelo);
         });
 
         btnCargar.addActionListener(e -> {
             JFileChooser ch = new JFileChooser();
-            if (ch.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                controladores.getUsuarioController().cargarVendedoresDesdeCSV(ch.getSelectedFile());
+            if (ch.showOpenDialog(MenuAdministrador.this) == JFileChooser.APPROVE_OPTION) {
+                util.CargaCSVResult r = controladores.getUsuarioController().cargarVendedoresDesdeCSV(ch.getSelectedFile());
+                if (r != null) {
+                    String msg = r.resumen();
+                    if (!r.errores.isEmpty()) msg += "\nErrores:\n" + String.join("\n", r.errores);
+                    JOptionPane.showMessageDialog(MenuAdministrador.this, msg, "Resultado carga vendedores", JOptionPane.INFORMATION_MESSAGE);
+                }
             }
             cargarVendedoresEnTabla(modelo);
         });
 
         btnActualizar.addActionListener(e -> {
-            DialogActualizarVendedor d = new DialogActualizarVendedor(SwingUtilities.getWindowAncestor(this), controladores.getUsuarioController());
+            DialogActualizarVendedor d = new DialogActualizarVendedor(SwingUtilities.getWindowAncestor(MenuAdministrador.this), controladores.getUsuarioController());
             d.setVisible(true);
             cargarVendedoresEnTabla(modelo);
         });
 
         btnEliminar.addActionListener(e -> {
-            DialogEliminarVendedor d = new DialogEliminarVendedor(SwingUtilities.getWindowAncestor(this), controladores.getUsuarioController());
+            DialogEliminarVendedor d = new DialogEliminarVendedor(SwingUtilities.getWindowAncestor(MenuAdministrador.this), controladores.getUsuarioController());
             d.setVisible(true);
             cargarVendedoresEnTabla(modelo);
         });
@@ -112,10 +125,11 @@ public class MenuAdministrador extends JPanel {
         DefaultTableModel modelo = new DefaultTableModel(new Object[]{"Codigo", "Nombre", "Categoria", "Acciones"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false;
+                // solo la columna 'Acciones' (índice 3) es editable para poder usar el editor con botón
+                return column == 3;
             }
         };
-        JTable tabla = new JTable(modelo);
+    JTable tabla = new JTable(modelo);
         panel.add(new JScrollPane(tabla), BorderLayout.CENTER);
 
         JPanel right = new JPanel(new GridLayout(4, 1, 8, 8));
@@ -138,26 +152,48 @@ public class MenuAdministrador extends JPanel {
         btnCargar.addActionListener(e -> {
             JFileChooser ch = new JFileChooser();
             if (ch.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                controladores.getProductoController().cargarDesdeCSV(ch.getSelectedFile());
+                util.CargaCSVResult r = controladores.getProductoController().cargarDesdeCSV(ch.getSelectedFile());
+                if (r != null) {
+                    String msg = r.resumen();
+                    if (!r.errores.isEmpty()) msg += "\nErrores:\n" + String.join("\n", r.errores);
+                    JOptionPane.showMessageDialog(MenuAdministrador.this, msg, "Resultado carga productos", JOptionPane.INFORMATION_MESSAGE);
+                }
             }
             cargarProductosEnTabla(modelo);
         });
 
         btnActualizar.addActionListener(e -> {
-            DialogActualizarProducto d = new DialogActualizarProducto(SwingUtilities.getWindowAncestor(this), controladores.getProductoController(), "");
-            d.setVisible(true);
-            cargarProductosEnTabla(modelo);
-        });
-
-        btnEliminar.addActionListener(e -> {
-            String codigo = JOptionPane.showInputDialog(this, "Codigo a eliminar:");
-            if (codigo != null) {
-                controladores.getProductoController().eliminarProducto(codigo);
+            int sel = tabla.getSelectedRow();
+            String codigo = null;
+            if (sel >= 0) codigo = (String) tabla.getValueAt(sel, 0);
+            else codigo = JOptionPane.showInputDialog(MenuAdministrador.this, "Código del producto a actualizar:");
+            if (codigo != null && !codigo.trim().isEmpty()) {
+                DialogActualizarProducto d = new DialogActualizarProducto(SwingUtilities.getWindowAncestor(MenuAdministrador.this), controladores.getProductoController(), codigo.trim());
+                d.setVisible(true);
                 cargarProductosEnTabla(modelo);
             }
         });
 
+        btnEliminar.addActionListener(e -> {
+            int sel = tabla.getSelectedRow();
+            String codigo = null;
+            if (sel >= 0) codigo = (String) tabla.getValueAt(sel, 0);
+            else codigo = JOptionPane.showInputDialog(MenuAdministrador.this, "Codigo a eliminar:");
+            if (codigo != null && !codigo.trim().isEmpty()) {
+                int conf = JOptionPane.showConfirmDialog(MenuAdministrador.this, "¿Confirmar eliminación de " + codigo + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+                if (conf == JOptionPane.YES_OPTION) {
+                    boolean ok = controladores.getProductoController().eliminarProducto(codigo.trim());
+                    if (!ok) JOptionPane.showMessageDialog(MenuAdministrador.this, "No se pudo eliminar (no existe)");
+                    cargarProductosEnTabla(modelo);
+                }
+            }
+        });
+
         cargarProductosEnTabla(modelo);
+
+        // Convertir la columna "Acciones" en botones "Ver detalle" por fila
+        tabla.getColumn("Acciones").setCellRenderer(new ButtonRenderer());
+        tabla.getColumn("Acciones").setCellEditor(new ButtonEditor(new JCheckBox()));
         return panel;
     }
 
@@ -167,6 +203,72 @@ public class MenuAdministrador extends JPanel {
         if (productos == null) return;
         for (Producto p : productos) {
             modelo.addRow(new Object[]{p.getCodigo(), p.getNombre(), p.getCategoria(), "Ver detalle"});
+        }
+    }
+
+    // Renderer para mostrar botón en la celda
+    private class ButtonRenderer extends JButton implements TableCellRenderer {
+        public ButtonRenderer() { setOpaque(true); }
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            setText(value == null ? "" : value.toString());
+            return this;
+        }
+    }
+
+    // Editor que maneja el click en el botón y abre el diálogo de detalle
+    private class ButtonEditor extends DefaultCellEditor {
+        private JButton button;
+        private String label;
+        private boolean isPushed;
+        private int currentRow;
+
+        public ButtonEditor(JCheckBox checkBox) {
+            super(checkBox);
+            button = new JButton();
+            button.setOpaque(true);
+            button.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    fireEditingStopped();
+                    // obtener código desde la tabla
+                    JTable table = (JTable) button.getClientProperty("table");
+                    if (table == null) return;
+                    Object codigoObj = table.getValueAt(currentRow, 0);
+                    if (codigoObj == null) return;
+                    String codigo = codigoObj.toString();
+                    Producto p = controladores.getProductoController().buscarProducto(codigo);
+                    if (p != null) {
+                        // abrir diálogo con detalle específico por categoría
+                        DialogDetalleProducto d = new DialogDetalleProducto(SwingUtilities.getWindowAncestor(MenuAdministrador.this), p);
+                        d.setVisible(true);
+                    } else {
+                        JOptionPane.showMessageDialog(MenuAdministrador.this, "Producto no encontrado", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            label = (value == null) ? "" : value.toString();
+            button.setText(label);
+            // almacenar referencia a la tabla y fila
+            button.putClientProperty("table", table);
+            currentRow = row;
+            isPushed = true;
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            isPushed = false;
+            return label;
+        }
+
+        @Override
+        public boolean stopCellEditing() {
+            isPushed = false;
+            return super.stopCellEditing();
         }
     }
 
@@ -209,6 +311,22 @@ public class MenuAdministrador extends JPanel {
             }
         }));
 
+        // Botón para abrir la bitácora del sistema
+        left.add(new JButton(new AbstractAction("Bitácora del Sistema") {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                DialogBitacoraViewer d = new DialogBitacoraViewer(SwingUtilities.getWindowAncestor(MenuAdministrador.this), controladores.getBitacoraController());
+                d.setVisible(true);
+            }
+        }));
+
+        // Botón para ver datos del estudiante
+        left.add(new JButton(new AbstractAction("Ver datos estudiante") {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                DialogDatosEstudiante d = new DialogDatosEstudiante(SwingUtilities.getWindowAncestor(MenuAdministrador.this));
+                d.setVisible(true);
+            }
+        }));
+
         panel.add(left);
         panel.add(new JPanel());
         return panel;
@@ -221,49 +339,186 @@ public class MenuAdministrador extends JPanel {
         if (ch.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
         File f = ch.getSelectedFile();
         try {
+            java.util.List<String[]> filas = new java.util.ArrayList<>();
+            String titulo = "Reporte";
             switch (tipo) {
                 case "TOP_VENDIDOS": {
+                    titulo = "Top Productos - Más vendidos";
                     util.ReportesUtil.ProductoVenta[] pv = util.ReportesUtil.topN(util.ReportesUtil.calcularVentasPorProducto(controladores.getPedidoController().listarTodos(), controladores.getProductoController().listarProductos()), 5);
-                    util.PdfUtil.generarReporteTopVendidos(f, java.util.Arrays.asList(pv));
+                    // columnas: nombre, cantidad vendida, categoria, ingresos generados
+                    for (util.ReportesUtil.ProductoVenta p : pv) {
+                        if (p == null) continue;
+                        filas.add(new String[]{p.nombre, String.valueOf(p.cantidad), p.categoria, String.format("%.2f", p.ingresos)});
+                    }
+                    util.PdfUtil.generarReporteTabla(f, titulo, new String[]{"Nombre","Cantidad Vendida","Categoria","Ingresos Generados"}, filas);
                     break;
                 }
                 case "MENOS_VENDIDOS": {
+                    titulo = "Top Productos - Menos vendidos";
                     util.ReportesUtil.ProductoVenta[] pv = util.ReportesUtil.bottomN(util.ReportesUtil.calcularVentasPorProducto(controladores.getPedidoController().listarTodos(), controladores.getProductoController().listarProductos()), 5);
-                    util.PdfUtil.generarReporteTopVendidos(f, java.util.Arrays.asList(pv));
-                    break;
-                }
-                case "VENTAS_VENDEDOR": {
-                    util.ReportesUtil.VendedorVenta[] vv = util.ReportesUtil.ventasPorVendedor(controladores.getPedidoController().listarTodos());
-                    util.PdfUtil.generarReporteVentasPorVendedor(f, vv);
-                    break;
-                }
-                case "CLIENTES_ACTIVOS": {
-                    util.ReportesUtil.ClienteAct[] ca = util.ReportesUtil.clientesActivos(controladores.getPedidoController().listarTodos());
-                    util.PdfUtil.generarReporteClientesActivos(f, ca);
-                    break;
-                }
-                case "FINANCIERO": {
-                    util.ReportesUtil.ResumenFinanciero r = util.ReportesUtil.resumenFinanciero(controladores.getPedidoController().listarTodos());
-                    util.PdfUtil.generarReporteResumenFinanciero(f, r);
-                    break;
-                }
-                case "POR_CADUCAR": {
-                    util.ReportesUtil.ProductoPorCaducar[] pc = util.ReportesUtil.productosPorCaducar(controladores.getProductoController().listarProductos());
-                    util.PdfUtil.generarReporteProductosPorCaducar(f, pc);
+                    // columnas: nombre, cantidad vendida, stock actual, recomendaciones de promocion
+                    for (util.ReportesUtil.ProductoVenta p : pv) {
+                        if (p == null) continue;
+                        int stock = controladores.getStockController().getStock(p.codigo);
+                        String rec = stock <= 5 ? "Promoción: Descuento 20%" : "Promoción: Combo/Bundle";
+                        filas.add(new String[]{p.nombre, String.valueOf(p.cantidad), String.valueOf(stock), rec});
+                    }
+                    util.PdfUtil.generarReporteTabla(f, titulo, new String[]{"Nombre","Cantidad Vendida","Stock Actual","Recomendaciones"}, filas);
                     break;
                 }
                 case "INVENTARIO_CRITICO": {
+                    titulo = "Reporte de Inventario";
                     String[] cods = controladores.getStockController().listarCodigos();
                     int[] stocks = controladores.getStockController().listarStocks();
                     util.ReportesUtil.StockEstado[] se = util.ReportesUtil.inventarioCritico(cods, stocks, controladores.getProductoController().listarProductos());
-                    util.PdfUtil.generarReporteInventarioCritico(f, se);
+                    // columnas: codigo, nombre, categoria, stock actual, estado, fecha actualización stock, sugerencias
+                    java.time.format.DateTimeFormatter df = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+                    String now = java.time.LocalDateTime.now().format(df);
+                    for (util.ReportesUtil.StockEstado s : se) {
+                        String suger = s.estado.equalsIgnoreCase("CRITICO") ? "Reabastecer URGENTE" : (s.estado.equalsIgnoreCase("BAJO") ? "Reordenar" : "OK");
+                        filas.add(new String[]{s.codigo, s.nombre, s.categoria, String.valueOf(s.stock), s.estado, now, suger});
+                    }
+                    util.PdfUtil.generarReporteTabla(f, titulo, new String[]{"Codigo","Nombre","Categoria","Stock Actual","Estado","Fecha Actualizacion","Sugerencias"}, filas);
                     break;
                 }
-                default:
-                    JOptionPane.showMessageDialog(this, "Reporte generado (simple)");
+                case "VENTAS_VENDEDOR": {
+                    titulo = "Ventas por Vendedor";
+                    util.ReportesUtil.VendedorVenta[] vv = util.ReportesUtil.ventasPorVendedor(controladores.getPedidoController().listarTodos());
+                    // columnas: codigo, nombre (buscar en usuarios), cantidad pedidos, monto total, producto más vendido
+                    for (util.ReportesUtil.VendedorVenta v : vv) {
+                        String nombre = v.codigoVendedor;
+                        modelo.Usuario u = controladores.getUsuarioController().buscarPorCodigo(v.codigoVendedor);
+                        if (u != null) nombre = u.getNombre();
+                        // producto más vendido por vendedor y monto total real
+                        java.util.Map<String,Integer> cont = new java.util.HashMap<>();
+                        double montoTotal = 0.0;
+                        for (modelo.Pedido p : controladores.getPedidoController().listarTodos()) {
+                            if (!p.isConfirmado()) continue;
+                            if (v.codigoVendedor.equals(p.getVendedorConfirmador())) {
+                                for (modelo.Pedido.Linea l : p.getLineas()) {
+                                    cont.put(l.getCodigoProducto(), cont.getOrDefault(l.getCodigoProducto(), 0) + l.getCantidad());
+                                    montoTotal += l.getCantidad() * l.getPrecioUnitario();
+                                }
+                            }
+                        }
+                        String topProd = "-";
+                        int best = -1;
+                        for (java.util.Map.Entry<String,Integer> e : cont.entrySet()) {
+                            if (e.getValue() > best) { best = e.getValue(); topProd = e.getKey(); }
+                        }
+                        // mapear topProd a nombre si existe
+                        String topProdNombre = topProd;
+                        modelo.Producto prodTop = controladores.getProductoController().buscarProducto(topProd);
+                        if (prodTop != null) topProdNombre = prodTop.getNombre();
+                        filas.add(new String[]{v.codigoVendedor, nombre, String.valueOf(v.cantidadPedidos), String.format("%.2f", montoTotal), topProdNombre});
+                    }
+                    util.PdfUtil.generarReporteTabla(f, titulo, new String[]{"Codigo Vendedor","Nombre Vendedor","Pedidos Confirmados","Monto Total","Producto Mas Vendido"}, filas);
                     break;
+                }
+                case "CLIENTES_ACTIVOS": {
+                    titulo = "Clientes Activos";
+                    util.ReportesUtil.ClienteAct[] ca = util.ReportesUtil.clientesActivos(controladores.getPedidoController().listarTodos());
+                    // columnas: codigo, nombre cliente, fecha de ultima compra, producto favorito (primeros 2)
+                    java.time.format.DateTimeFormatter fdt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+                    for (util.ReportesUtil.ClienteAct c : ca) {
+                        String nombre = c.codigoCliente;
+                        modelo.Usuario u = controladores.getUsuarioController().buscarPorCodigo(c.codigoCliente);
+                        if (u != null) nombre = u.getNombre();
+                        // fecha ultima compra y productos favoritos (top 2)
+                        java.time.LocalDateTime ultima = null;
+                        java.util.Map<String,Integer> cont = new java.util.HashMap<>();
+                        for (modelo.Pedido p : controladores.getPedidoController().listarTodos()) {
+                            if (!p.isConfirmado()) continue;
+                            if (c.codigoCliente.equals(p.getCodigoCliente())) {
+                                // parsear fecha para determinar la ultima
+                                try {
+                                    java.time.LocalDateTime dt = java.time.LocalDateTime.parse(p.getFechaHora(), fdt);
+                                    if (ultima == null || dt.isAfter(ultima)) ultima = dt;
+                                } catch (Exception ex) {
+                                    // si no se puede parsear, fallback a considerar la cadena
+                                }
+                                for (modelo.Pedido.Linea l : p.getLineas()) cont.put(l.getCodigoProducto(), cont.getOrDefault(l.getCodigoProducto(), 0) + l.getCantidad());
+                            }
+                        }
+                        String fechaUlt = ultima == null ? "-" : ultima.format(fdt);
+                        // obtener top2 ordenados
+                        java.util.List<java.util.Map.Entry<String,Integer>> list = new java.util.ArrayList<>(cont.entrySet());
+                        list.sort((a,b) -> Integer.compare(b.getValue(), a.getValue()));
+                        java.util.List<String> favNames = new java.util.ArrayList<>();
+                        for (int i = 0; i < Math.min(2, list.size()); i++) {
+                            String code = list.get(i).getKey();
+                            modelo.Producto prod = controladores.getProductoController().buscarProducto(code);
+                            favNames.add(prod == null ? code : prod.getNombre());
+                        }
+                        String favs = String.join(";", favNames);
+                        filas.add(new String[]{c.codigoCliente, nombre, fechaUlt, favs});
+                    }
+                    util.PdfUtil.generarReporteTabla(f, titulo, new String[]{"Codigo","Nombre","Fecha Ultima Compra","Productos Favoritos"}, filas);
+                    break;
+                }
+                case "FINANCIERO": {
+                    titulo = "Reporte Financiero por Categoria";
+                    // categoria, cantidad vendido por categoria, ingresos totales por categoria, porcentaje, promedio precio
+                    java.util.Map<String, Integer> cantidadPorCat = new java.util.HashMap<>();
+                    java.util.Map<String, Double> ingresosPorCat = new java.util.HashMap<>();
+                    java.util.Map<String, Integer> contPrecios = new java.util.HashMap<>();
+                    int totalCant = 0; double totalIngresos = 0.0;
+                    for (modelo.Pedido p : controladores.getPedidoController().listarTodos()) {
+                        if (!p.isConfirmado()) continue;
+                        for (modelo.Pedido.Linea l : p.getLineas()) {
+                            modelo.Producto prod = controladores.getProductoController().buscarProducto(l.getCodigoProducto());
+                            String cat = prod == null ? "-" : prod.getCategoria();
+                            cantidadPorCat.put(cat, cantidadPorCat.getOrDefault(cat,0) + l.getCantidad());
+                            ingresosPorCat.put(cat, ingresosPorCat.getOrDefault(cat,0.0) + l.getCantidad() * l.getPrecioUnitario());
+                            contPrecios.put(cat, contPrecios.getOrDefault(cat,0) + l.getCantidad());
+                            totalCant += l.getCantidad();
+                            totalIngresos += l.getCantidad() * l.getPrecioUnitario();
+                        }
+                    }
+                    for (String cat : cantidadPorCat.keySet()) {
+                        int cant = cantidadPorCat.get(cat);
+                        double inc = ingresosPorCat.getOrDefault(cat, 0.0);
+                        // porcentaje por unidades (cantidad) y por ingresos (monetario)
+                        double pctUnidades = totalCant == 0 ? 0.0 : (100.0 * cant / totalCant);
+                        double pctIngresos = totalIngresos == 0.0 ? 0.0 : (100.0 * inc / totalIngresos);
+                        double avg = contPrecios.getOrDefault(cat,0) == 0 ? 0.0 : inc / contPrecios.get(cat);
+                        filas.add(new String[]{cat, String.valueOf(cant), String.format("%.2f", inc), String.format("%.2f%%", pctUnidades), String.format("%.2f%%", pctIngresos), String.format("%.2f", avg)});
+                    }
+                    util.PdfUtil.generarReporteTabla(f, titulo, new String[]{"Categoria","Cantidad Vendida","Ingresos","% Unidades","% Ingresos","Precio Promedio"}, filas);
+                    break;
+                }
+                case "POR_CADUCAR": {
+                    titulo = "Productos por Caducar";
+                    util.ReportesUtil.ProductoPorCaducar[] pc = util.ReportesUtil.productosPorCaducar(controladores.getProductoController().listarProductos());
+                    // codigo, nombre, fecha, dias restantes, stock actual, valor monetario en riesgo, estado prioridad
+                    for (util.ReportesUtil.ProductoPorCaducar p : pc) {
+                        int stock = controladores.getStockController().getStock(p.codigo);
+                        // preferir precio almacenado en el modelo Producto, si existe
+                        double precio = 0.0;
+                        modelo.Producto productoExistente = controladores.getProductoController().buscarProducto(p.codigo);
+                        if (productoExistente != null) precio = productoExistente.getPrecio(); else precio = controladores.getStockController().getPrecio(p.codigo);
+                        double valor = precio * stock;
+                        String prioridad = p.diasRestantes <= 3 ? "CRITICO" : (p.diasRestantes <= 7 ? "URGENTE" : "NORMAL");
+                        String fecha = "-";
+                        modelo.Producto prod = controladores.getProductoController().buscarProducto(p.codigo);
+                        if (prod instanceof modelo.ProductoAlimento) {
+                            java.time.LocalDate cad = ((modelo.ProductoAlimento) prod).getFechaCaducidad();
+                            fecha = cad == null ? "-" : cad.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                        }
+                        filas.add(new String[]{p.codigo, p.nombre, fecha, String.valueOf(p.diasRestantes), String.valueOf(stock), String.format("%.2f", valor), prioridad});
+                    }
+                    util.PdfUtil.generarReporteTabla(f, titulo, new String[]{"Codigo","Nombre","Fecha","Dias Restantes","Stock","Valor en Riesgo","Prioridad"}, filas);
+                    break;
+                }
+                default: {
+                    JOptionPane.showMessageDialog(this, "Tipo de reporte no soportado");
+                    return;
+                }
             }
+            // registrar en bitacora la generación de reporte
+            controladores.getBitacoraController().registrar("ADMIN", "admin", "GENERAR_REPORTE", "EXITOSA", f.getName());
         } catch (Exception ex) {
+            controladores.getBitacoraController().registrar("ADMIN", "admin", "GENERAR_REPORTE", "FALLIDA", ex.getMessage());
             JOptionPane.showMessageDialog(this, "Error generando reporte: " + ex.getMessage());
         }
     }

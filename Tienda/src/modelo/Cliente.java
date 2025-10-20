@@ -16,6 +16,8 @@ public class Cliente extends Usuario {
     public LocalDate getCumpleanos() { return cumpleanos; }
     public void setCumpleanos(LocalDate cumpleanos) { this.cumpleanos = cumpleanos; }
 
+    public void setGenero(String genero) { this.genero = genero; }
+
     @Override
     public String getRol() {
         return "CLIENTE";
