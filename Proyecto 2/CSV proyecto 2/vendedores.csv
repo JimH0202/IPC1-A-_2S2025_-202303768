@@ -1,0 +1,11 @@
+codigo,nombre,genero,contrasena,confirmados
+V001,Juan Perez,Masculino,pass123,10
+V002,Ana Gomez,Femenino,pass234,5
+V003,Carlos Ruiz,Masculino,pass345,7
+V004,Lucia Morales,Femenino,pass456,12
+V005,Pedro Lopez,Masculino,pass567,3
+V006,Mariana Torres,Femenino,pass678,8
+V007,Felipe Diaz,Masculino,pass789,6
+V008,Sofia Herrera,Femenino,pass890,9
+V009,Diego Castro,Masculino,pass901,4
+V010,Valeria Ramos,Femenino,pass012,11

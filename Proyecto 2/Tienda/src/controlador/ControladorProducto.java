@@ -100,7 +100,7 @@ public class ControladorProducto {
 
     public util.CargaCSVResult cargarDesdeCSV(File file) {
         util.CargaCSVResult res = new util.CargaCSVResult();
-        // Formato: codigo,nombre,categoria,atributo_unico
+        // Formato: codigo,nombre,categoria,atributo_unico[,precio]
         DateTimeFormatter f = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line; int lineaNum = 0;
@@ -115,6 +115,10 @@ public class ControladorProducto {
                 String nombre = parts[1].trim();
                 String categoria = parts[2].trim();
                 String atributo = parts[3].trim();
+                double precio = 0.0;
+                if (parts.length >= 5) {
+                    try { precio = Double.parseDouble(parts[4].trim()); } catch (Exception ex) { res.errores.add("Linea " + lineaNum + ": precio invalido, se uso 0"); }
+                }
                 if (codigo.isEmpty() || nombre.isEmpty()) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": codigo/nombre vacio"); continue; }
                 if (buscarProducto(codigo) != null) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": codigo ya existe: " + codigo); continue; }
                 Producto p = null;
@@ -127,6 +131,8 @@ public class ControladorProducto {
                 } else {
                     p = new ProductoGeneral(codigo, nombre, atributo);
                 }
+                // establecer precio si se especificó
+                p.setPrecio(precio);
                 crearProducto(p);
                 res.aceptadas++;
             }

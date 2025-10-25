@@ -1,96 +1,20 @@
-[20/10/2025 13:44:31] | ADMINISTRADOR | admin | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 13:44:31] | ADMIN | admin | CREAR_USUARIO | EXITOSA | Admin por defecto creado
-[20/10/2025 13:44:38] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:04:12] | SISTEMA | C002 | LOGIN | FALLIDA | Usuario no encontrado
-[20/10/2025 15:04:21] | SISTEMA | C001 | LOGIN | FALLIDA | Usuario no encontrado
-[20/10/2025 15:04:27] | SISTEMA | C001 | LOGIN | FALLIDA | Usuario no encontrado
-[20/10/2025 15:04:29] | SISTEMA | C001 | LOGIN | FALLIDA | Usuario no encontrado
-[20/10/2025 15:04:29] | SISTEMA | C001 | LOGIN | FALLIDA | Usuario no encontrado
-[20/10/2025 15:04:39] | SISTEMA | 1234 | LOGIN | FALLIDA | Usuario no encontrado
-[20/10/2025 15:04:40] | SISTEMA | 1234 | LOGIN | FALLIDA | Usuario no encontrado
-[20/10/2025 15:04:40] | SISTEMA | 1234 | LOGIN | FALLIDA | Usuario no encontrado
-[20/10/2025 15:04:40] | SISTEMA | 1234 | LOGIN | FALLIDA | Usuario no encontrado
-[20/10/2025 15:04:47] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:05:15] | VENDEDOR | codigo | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:05:15] | VENDEDOR | V001 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:05:15] | VENDEDOR | V002 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:05:16] | VENDEDOR | V003 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:05:16] | VENDEDOR | V004 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:05:16] | VENDEDOR | V005 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:05:16] | VENDEDOR | V006 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:05:16] | VENDEDOR | V007 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:05:16] | VENDEDOR | V008 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:05:16] | VENDEDOR | V009 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:05:16] | VENDEDOR | V010 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:05:16] | ADMIN | admin | CARGA_CSV_VENDEDORES | EXITOSA | vendedores.csv -> Procesadas:11 Aceptadas:11 Rechazadas:0
-[20/10/2025 15:06:37] | ADMIN | admin | CREAR_PRODUCTO | EXITOSA | codigo
-[20/10/2025 15:06:37] | ADMIN | admin | CREAR_PRODUCTO | EXITOSA | V001
-[20/10/2025 15:06:37] | ADMIN | admin | CREAR_PRODUCTO | EXITOSA | V002
-[20/10/2025 15:06:37] | ADMIN | admin | CREAR_PRODUCTO | EXITOSA | V003
-[20/10/2025 15:06:37] | ADMIN | admin | CARGA_CSV_PRODUCTOS | EXITOSA | productos.csv -> Procesadas:4 Aceptadas:4 Rechazadas:0
-[20/10/2025 15:07:23] | ADMINISTRADOR | admin | LOGOUT | EXITOSA | Usuario Administrador (admin) cerró sesión
-[20/10/2025 15:07:49] | VENDEDOR | V001 | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:08:10] | VENDEDOR | V001 | CARGA_CSV_STOCK_UI | INICIO | stock.csv
-[20/10/2025 15:08:10] | VENDEDOR | V001 | AGREGAR_STOCK | EXITOSA | Stock actualizado: Producto V001, Usuario V001, Antes=0, Cambio=+100, Ahora=100
-[20/10/2025 15:08:10] | VENDEDOR | V001 | AGREGAR_STOCK | EXITOSA | Stock actualizado: Producto V002, Usuario V001, Antes=0, Cambio=+200, Ahora=200
-[20/10/2025 15:08:10] | VENDEDOR | V001 | AGREGAR_STOCK | EXITOSA | Stock actualizado: Producto V003, Usuario V001, Antes=0, Cambio=+5, Ahora=5
-[20/10/2025 15:08:10] | VENDEDOR | V001 | AGREGAR_STOCK | EXITOSA | Stock actualizado: Producto V004, Usuario V001, Antes=0, Cambio=+1000, Ahora=1000
-[20/10/2025 15:08:10] | VENDEDOR | V001 | CARGA_CSV_STOCK | EXITOSA | stock.csv
-[20/10/2025 15:08:29] | VENDEDOR | V001 | CARGA_CSV_CLIENTES_UI | INICIO | clientes.csv
-[20/10/2025 15:08:30] | CLIENTE | C001 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:08:30] | CLIENTE | C002 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:08:30] | CLIENTE | C003 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:08:30] | CLIENTE | C004 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:08:30] | CLIENTE | C005 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:08:30] | CLIENTE | C006 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:08:30] | CLIENTE | C007 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:08:30] | CLIENTE | C008 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:08:30] | CLIENTE | C009 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:08:30] | CLIENTE | C010 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:08:30] | ADMIN | admin | CARGA_CSV_CLIENTES | EXITOSA | clientes.csv -> carga clientes OK
-[20/10/2025 15:08:41] | VENDEDOR | V001 | LOGOUT | EXITOSA | Usuario Juan Perez (V001) cerró sesión
-[20/10/2025 15:08:47] | CLIENTE | C001 | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:09:47] | CLIENTE | C001 | AGREGAR_STOCK | EXITOSA | Stock actualizado: Producto V001, Usuario C001, Antes=100, Cambio=-100, Ahora=0
-[20/10/2025 15:09:47] | CLIENTE | C001 | RESERVAR_STOCK | EXITOSA | Reserva: Cliente C001, Producto V001, Cantidad=100
-[20/10/2025 15:09:47] | CLIENTE | C001 | AGREGAR_CARRITO | EXITOSA | Cliente C001 agregó Producto V001 Cant=100 al carrito
-[20/10/2025 15:09:52] | CLIENTE | C001 | AGREGAR_STOCK | EXITOSA | Stock actualizado: Producto V002, Usuario C001, Antes=200, Cambio=-150, Ahora=50
-[20/10/2025 15:09:52] | CLIENTE | C001 | RESERVAR_STOCK | EXITOSA | Reserva: Cliente C001, Producto V002, Cantidad=150
-[20/10/2025 15:09:52] | CLIENTE | C001 | AGREGAR_CARRITO | EXITOSA | Cliente C001 agregó Producto V002 Cant=150 al carrito
-[20/10/2025 15:10:06] | CLIENTE | C001 | AGREGAR_STOCK | EXITOSA | Stock actualizado: Producto V002, Usuario C001, Antes=50, Cambio=-25, Ahora=25
-[20/10/2025 15:10:06] | CLIENTE | C001 | RESERVAR_STOCK | EXITOSA | Reserva: Cliente C001, Producto V002, Cantidad=25
-[20/10/2025 15:10:06] | CLIENTE | C001 | ACTUALIZAR_CARRITO | EXITOSA | Cliente C001 sumó 25 al carrito Producto V002 -> nueva cantidad 175
-[20/10/2025 15:10:10] | CLIENTE | C001 | AGREGAR_STOCK | EXITOSA | Stock actualizado: Producto V003, Usuario C001, Antes=5, Cambio=-2, Ahora=3
-[20/10/2025 15:10:10] | CLIENTE | C001 | RESERVAR_STOCK | EXITOSA | Reserva: Cliente C001, Producto V003, Cantidad=2
-[20/10/2025 15:10:10] | CLIENTE | C001 | AGREGAR_CARRITO | EXITOSA | Cliente C001 agregó Producto V003 Cant=2 al carrito
-[20/10/2025 15:10:16] | CLIENTE | C001 | AGREGAR_STOCK | EXITOSA | Stock actualizado: Producto V003, Usuario C001, Antes=3, Cambio=-1, Ahora=2
-[20/10/2025 15:10:16] | CLIENTE | C001 | RESERVAR_STOCK | EXITOSA | Reserva: Cliente C001, Producto V003, Cantidad=1
-[20/10/2025 15:10:16] | CLIENTE | C001 | ACTUALIZAR_CARRITO | EXITOSA | Cliente C001 sumó 1 al carrito Producto V003 -> nueva cantidad 3
-[20/10/2025 15:10:49] | CLIENTE | C001 | AGREGAR_STOCK | EXITOSA | Stock actualizado: Producto V001, Usuario C001, Antes=0, Cambio=+1, Ahora=1
-[20/10/2025 15:10:49] | CLIENTE | C001 | LIBERAR_STOCK | EXITOSA | Ajuste carrito (editor): Cliente C001 liberó 1 de V001
-[20/10/2025 15:10:57] | CLIENTE | C001 | AGREGAR_STOCK | EXITOSA | Stock actualizado: Producto V001, Usuario C001, Antes=1, Cambio=+99, Ahora=100
-[20/10/2025 15:10:57] | CLIENTE | C001 | LIBERAR_STOCK | EXITOSA | Eliminar carrito (editor): Cliente C001 liberó 99 de V001
-[20/10/2025 15:11:04] | CLIENTE | C001 | REALIZAR_PEDIDO | EXITOSA | Pedido PE-001 creado por Cliente C001 - Total: 0.00, Productos: 2
-[20/10/2025 15:11:07] | CLIENTE | C001 | CREAR_PEDIDO | EXITOSA | Pedido PE-001 creado desde carrito - Total: 0.00
-[20/10/2025 15:11:14] | CLIENTE | C001 | LOGOUT | EXITOSA | Usuario Juan Perez (C001) cerró sesión
-[20/10/2025 15:11:22] | VENDEDOR | V001 | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:11:29] | VENDEDOR | V001 | INCREMENTAR_VENTAS | EXITOSA | +1
-[20/10/2025 15:11:29] | VENDEDOR | V001 | CONFIRMAR_PEDIDO | EXITOSA | Pedido PE-001 confirmado por Vendedor V001 - Total: 0.00, Productos: 2
-[20/10/2025 15:11:34] | VENDEDOR | V001 | LOGOUT | EXITOSA | Usuario Juan Perez (V001) cerró sesión
-[20/10/2025 15:11:39] | CLIENTE | C001 | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:12:10] | CLIENTE | C001 | LOGOUT | EXITOSA | Usuario Juan Perez (C001) cerró sesión
-[20/10/2025 15:12:15] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:13:20] | ADMINISTRADOR | admin | LOGOUT | EXITOSA | Usuario Administrador (admin) cerró sesión
-[20/10/2025 15:13:28] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:27:22] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:30:41] | ADMIN | admin | ACTUALIZAR_PRODUCTO | EXITOSA | V001
-[20/10/2025 15:30:41] | ADMIN | admin | ACTUALIZAR_PRECIO | EXITOSA | V001->15.5
-[20/10/2025 15:30:43] | ADMINISTRADOR | admin | LOGOUT | EXITOSA | Usuario Administrador (admin) cerró sesión
-[20/10/2025 15:30:49] | VENDEDOR | V001 | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:31:10] | VENDEDOR | V001 | LOGOUT | EXITOSA | Usuario Juan Perez (V001) cerró sesión
-[20/10/2025 15:31:20] | CLIENTE | C001 | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:47:56] | CLIENTE | C002 | LOGIN | FALLIDA | Contraseña incorrecta
-[20/10/2025 15:48:06] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:48:26] | VENDEDOR | 1234 | CREAR_USUARIO | EXITOSA | Usuario creado
-[20/10/2025 15:51:46] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:53:19] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
-[20/10/2025 15:54:29] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
+[24/10/2025 21:09:27] | ADMINISTRADOR | admin | CREAR_USUARIO | EXITOSA | Usuario creado
+[24/10/2025 21:09:27] | ADMIN | admin | CREAR_USUARIO | EXITOSA | Admin por defecto creado
+[24/10/2025 21:09:40] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
+[24/10/2025 21:09:53] | VENDEDOR | 1234 | CREAR_USUARIO | EXITOSA | Usuario creado
+[24/10/2025 21:10:15] | ADMINISTRADOR | admin | LOGOUT | EXITOSA | Usuario Administrador (admin) cerró sesión
+[24/10/2025 21:10:20] | VENDEDOR | 1234 | LOGIN | EXITOSA | Inicio de sesión correcto
+[24/10/2025 21:10:34] | VENDEDOR | 1234 | LOGOUT | EXITOSA | Usuario 1234 (1234) cerró sesión
+[24/10/2025 21:12:35] | ADMINISTRADOR | admin | LOGIN | EXITOSA | Inicio de sesión correcto
+[24/10/2025 21:12:58] | VENDEDOR | codigo | CREAR_USUARIO | EXITOSA | Usuario creado
+[24/10/2025 21:12:58] | VENDEDOR | V001 | CREAR_USUARIO | EXITOSA | Usuario creado
+[24/10/2025 21:12:58] | VENDEDOR | V002 | CREAR_USUARIO | EXITOSA | Usuario creado
+[24/10/2025 21:12:58] | VENDEDOR | V003 | CREAR_USUARIO | EXITOSA | Usuario creado
+[24/10/2025 21:12:58] | VENDEDOR | V004 | CREAR_USUARIO | EXITOSA | Usuario creado
+[24/10/2025 21:12:58] | VENDEDOR | V005 | CREAR_USUARIO | EXITOSA | Usuario creado
+[24/10/2025 21:12:58] | VENDEDOR | V006 | CREAR_USUARIO | EXITOSA | Usuario creado
+[24/10/2025 21:12:58] | VENDEDOR | V007 | CREAR_USUARIO | EXITOSA | Usuario creado
+[24/10/2025 21:12:58] | VENDEDOR | V008 | CREAR_USUARIO | EXITOSA | Usuario creado
+[24/10/2025 21:12:58] | VENDEDOR | V009 | CREAR_USUARIO | EXITOSA | Usuario creado
+[24/10/2025 21:12:58] | VENDEDOR | V010 | CREAR_USUARIO | EXITOSA | Usuario creado
+[24/10/2025 21:12:58] | ADMIN | admin | CARGA_CSV_VENDEDORES | EXITOSA | vendedores.csv -> Procesadas:11 Aceptadas:11 Rechazadas:0

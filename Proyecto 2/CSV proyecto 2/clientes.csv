@@ -1,0 +1,11 @@
+codigo,cliente,genero,cumpleaños,contrasena
+C001,Juan Perez,Masculino,12/10/2010,pass123
+C002,Ana Gomez,Femenino,12/10/2009,pass234
+C003,Carlos Ruiz,Masculino,12/10/2008,pass345
+C004,Lucia Morales,Femenino,12/10/2007,pass456
+C005,Pedro Lopez,Masculino,12/10/2006,pass567
+C006,Mariana Torres,Femenino,12/10/2005,pass678
+C007,Felipe Diaz,Masculino,12/10/2004,pass789
+C008,Sofia Herrera,Femenino,12/10/2003,pass890
+C009,Diego Castro,Masculino,12/10/2002,pass901
+C010,Valeria Ramos,Femenino,12/10/2000,pass012

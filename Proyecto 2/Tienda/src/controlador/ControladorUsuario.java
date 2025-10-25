@@ -101,7 +101,7 @@ public class ControladorUsuario {
 
     public util.CargaCSVResult cargarVendedoresDesdeCSV(File file) {
         util.CargaCSVResult res = new util.CargaCSVResult();
-        // Formato: Código, Nombre, Género, Contraseña, confirmados (ignore confirmados)
+        // Formato: Código, Nombre, Género, Contraseña, ventasConfirmadas (opcional)
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line; int lineaNum = 0;
             while ((line = br.readLine()) != null) {
@@ -118,6 +118,18 @@ public class ControladorUsuario {
                 if (codigo.isEmpty() || nombre.isEmpty() || contrasena.isEmpty()) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": campos vacios"); continue; }
                 if (buscarPorCodigo(codigo) != null) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": codigo ya existe: " + codigo); continue; }
                 Vendedor v = new Vendedor(codigo, nombre, genero, contrasena);
+                // si existe una quinta columna, interpretarla como ventas confirmadas
+                if (parts.length >= 5) {
+                    String s = parts[4].trim();
+                    if (!s.isEmpty()) {
+                        try {
+                            int vc = Integer.parseInt(s);
+                            v.setVentasConfirmadas(vc);
+                        } catch (NumberFormatException ex) {
+                            res.errores.add("Linea " + lineaNum + ": ventasConfirmadas invalido, se uso 0");
+                        }
+                    }
+                }
                 agregarUsuario(v);
                 res.aceptadas++;
             }
@@ -130,29 +142,38 @@ public class ControladorUsuario {
         return res;
     }
 
-    public void cargarClientesDesdeCSV(File file) {
+    public util.CargaCSVResult cargarClientesDesdeCSV(File file) {
+        util.CargaCSVResult res = new util.CargaCSVResult();
         // Formato: Código, Nombre, Género, Cumpleaños(dd/MM/yyyy), Contraseña
         java.time.format.DateTimeFormatter f = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
         try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(file))) {
-            String line;
+            String line; int lineaNum = 0;
             while ((line = br.readLine()) != null) {
+                lineaNum++;
                 line = line.trim();
                 if (line.isEmpty()) continue;
+                res.procesadas++;
                 String[] parts = line.split(",");
-                if (parts.length < 5) continue;
+                if (parts.length < 5) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": formato invalido"); continue; }
                 String codigo = parts[0].trim();
                 String nombre = parts[1].trim();
                 String genero = parts[2].trim();
                 java.time.LocalDate fecha = java.time.LocalDate.now();
                 try { fecha = java.time.LocalDate.parse(parts[3].trim(), f); } catch (Exception ignored) {}
                 String contrasena = parts[4].trim();
+                if (codigo.isEmpty() || nombre.isEmpty()) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": codigo/nombre vacio"); continue; }
+                if (buscarPorCodigo(codigo) != null) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": codigo ya existe: " + codigo); continue; }
                 modelo.Cliente c = new modelo.Cliente(codigo, nombre, genero, fecha, contrasena);
                 agregarUsuario(c);
+                res.aceptadas++;
             }
-            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_CLIENTES", "EXITOSA", file.getName() + " -> carga clientes OK");
+            bitacora.registrar("ADMIN", "admin", "CARGA_CSV_CLIENTES", "EXITOSA", file.getName() + " -> " + res.resumen());
         } catch (Exception e) {
+            res.rechazadas++;
+            res.errores.add("Error lectura: " + e.getMessage());
             bitacora.registrar("ADMIN", "admin", "CARGA_CSV_CLIENTES", "FALLIDA", file.getName() + " : " + e.getMessage());
         }
+        return res;
     }
 
     public Usuario[] listarTodosUsuarios() {

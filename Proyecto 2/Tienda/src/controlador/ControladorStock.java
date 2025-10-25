@@ -110,19 +110,24 @@ public class ControladorStock {
         return true;
     }
 
-    public void cargarDesdeCSV(File file, String usuarioCodigo) {
+    public util.CargaCSVResult cargarDesdeCSV(File file, String usuarioCodigo) {
+        util.CargaCSVResult res = new util.CargaCSVResult();
         // Formato: codigo,cantidad
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
+            String line; int lineaNum = 0;
             while((line = br.readLine()) != null) {
+                lineaNum++;
                 line = line.trim();
                 if (line.isEmpty()) continue;
+                res.procesadas++;
                 String[] parts = line.split(",");
-                if (parts.length < 2) continue;
+                if (parts.length < 2) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": formato invalido"); continue; }
                 String codigo = parts[0].trim();
                 int cantidad = 0;
-                try { cantidad = Integer.parseInt(parts[1].trim()); } catch (NumberFormatException ignored) {}
+                try { cantidad = Integer.parseInt(parts[1].trim()); } catch (NumberFormatException ignored) { res.errores.add("Linea " + lineaNum + ": cantidad invalida, se uso 0"); }
+                if (codigo.isEmpty()) { res.rechazadas++; res.errores.add("Linea " + lineaNum + ": codigo vacio"); continue; }
                 agregarStock(codigo, cantidad, usuarioCodigo);
+                res.aceptadas++;
             }
             // inferir rol del usuario que hizo la carga
             String tipo = "USUARIO";
@@ -132,8 +137,10 @@ public class ControladorStock {
                 else if (lc.startsWith("c")) tipo = "CLIENTE";
                 else if (lc.equals("admin") || lc.startsWith("a")) tipo = "ADMIN";
             }
-            bitacora.registrar(tipo, usuarioCodigo == null ? "-" : usuarioCodigo, "CARGA_CSV_STOCK", "EXITOSA", file.getName());
+            bitacora.registrar(tipo, usuarioCodigo == null ? "-" : usuarioCodigo, "CARGA_CSV_STOCK", "EXITOSA", file.getName() + " -> " + res.resumen());
         } catch (Exception e) {
+            res.rechazadas++;
+            res.errores.add("Error lectura: " + e.getMessage());
             String tipo2 = "USUARIO";
             if (usuarioCodigo != null) {
                 String lc2 = usuarioCodigo.toLowerCase();
@@ -143,6 +150,7 @@ public class ControladorStock {
             }
             bitacora.registrar(tipo2, usuarioCodigo == null ? "-" : usuarioCodigo, "CARGA_CSV_STOCK", "FALLIDA", file.getName() + " : " + e.getMessage());
         }
+        return res;
     }
 
     private void registrarHistorial(String codigo, int cantidadAgregada, String usuario) {
@@ -151,13 +159,8 @@ public class ControladorStock {
         DateTimeFormatter fTime = DateTimeFormatter.ofPattern("HH:mm:ss");
         String fecha = LocalDateTime.now().format(fDate);
         String hora = LocalDateTime.now().format(fTime);
-        // intentar obtener nombre del producto desde el controlador de producto
-        String nombreProducto = codigo;
-        try {
-            modelo.Producto p = productoController.buscarProducto(codigo);
-            if (p != null) nombreProducto = p.getNombre();
-        } catch (Exception ignored) {}
-        String linea = fecha + "," + hora + "," + usuario + "," + nombreProducto + "," + cantidadAgregada;
+        // registrar el codigo del producto (no el nombre) para consistencia y trazabilidad
+        String linea = fecha + "," + hora + "," + usuario + "," + codigo + "," + cantidadAgregada;
         try (FileWriter fw = new FileWriter(nombreArchivo, true); BufferedWriter bw = new BufferedWriter(fw)) {
             bw.write(linea);
             bw.newLine();

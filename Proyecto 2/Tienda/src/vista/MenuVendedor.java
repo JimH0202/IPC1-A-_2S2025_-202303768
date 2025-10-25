@@ -101,7 +101,12 @@ public class MenuVendedor extends JPanel {
             if (ch.showOpenDialog(MenuVendedor.this) == JFileChooser.APPROVE_OPTION) {
                     // registrar inicio de carga CSV clientes (UI)
                     try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "CARGA_CSV_CLIENTES_UI", "INICIO", ch.getSelectedFile().getName()); } catch (Exception ignored) {}
-                    controladores.getUsuarioController().cargarClientesDesdeCSV(ch.getSelectedFile());
+                    util.CargaCSVResult r = controladores.getUsuarioController().cargarClientesDesdeCSV(ch.getSelectedFile());
+                    if (r != null) {
+                        String msg = r.resumen();
+                        if (!r.errores.isEmpty()) msg += "\nErrores:\n" + String.join("\n", r.errores);
+                        JOptionPane.showMessageDialog(MenuVendedor.this, msg, "Resultado carga clientes", JOptionPane.INFORMATION_MESSAGE);
+                    }
                 cargarClientesEnTabla(modeloClientes);
             }
         });
@@ -218,7 +223,12 @@ public class MenuVendedor extends JPanel {
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             // registrar inicio de carga CSV stock (UI)
             try { controladores.getBitacoraController().registrar(vendedor.getRol(), vendedor.getCodigo(), "CARGA_CSV_STOCK_UI", "INICIO", chooser.getSelectedFile().getName()); } catch (Exception ignored) {}
-            controladores.getStockController().cargarDesdeCSV(chooser.getSelectedFile(), vendedor.getCodigo());
+            util.CargaCSVResult r = controladores.getStockController().cargarDesdeCSV(chooser.getSelectedFile(), vendedor.getCodigo());
+            if (r != null) {
+                String msg = r.resumen();
+                if (!r.errores.isEmpty()) msg += "\nErrores:\n" + String.join("\n", r.errores);
+                JOptionPane.showMessageDialog(MenuVendedor.this, msg, "Resultado carga stock", JOptionPane.INFORMATION_MESSAGE);
+            }
             cargarProductos();
         }
     }
@@ -306,9 +316,9 @@ public class MenuVendedor extends JPanel {
                     if (table != null && row >= 0) {
                         // si es la tabla de productos -> abrir historial del producto
                         if (table == tablaStock) {
-                            // pasar el NOMBRE del producto (columna 1) para que coincida con la columna 'Producto' del CSV
-                            String nombreProducto = (String) tablaStock.getValueAt(row, 1);
-                            DialogHistorialIngresos dlg = new DialogHistorialIngresos(SwingUtilities.getWindowAncestor(MenuVendedor.this), nombreProducto);
+                            // pasar el CÓDIGO del producto (columna 0) para que el historial filtre por codigo
+                            String codigoProducto = (String) tablaStock.getValueAt(row, 0);
+                            DialogHistorialIngresos dlg = new DialogHistorialIngresos(SwingUtilities.getWindowAncestor(MenuVendedor.this), codigoProducto);
                             dlg.setVisible(true);
                         } else if (table == tablaPedidos) {
                             String codigoPedido = (String) tablaPedidos.getValueAt(row, 0);

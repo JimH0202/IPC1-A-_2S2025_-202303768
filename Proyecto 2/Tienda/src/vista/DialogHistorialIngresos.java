@@ -48,13 +48,11 @@ public class DialogHistorialIngresos extends JDialog {
         this.filtroProducto = (filtroCodigoProducto == null || filtroCodigoProducto.trim().isEmpty()) ? null : filtroCodigoProducto.trim();
         // aplicar filtro tras cargar
         if (this.filtroProducto != null) {
-            // filtrar filas actuales
+            // filtrar filas actuales por columna 'Producto' (indice 3) o por si alguien escribió codigo en otra columna
             for (int r = modelo.getRowCount()-1; r >= 0; r--) {
-                Object nombre = modelo.getValueAt(r, 3); // columna nombre producto
-                Object codigoCol = modelo.getValueAt(r, 1); // si hubiera codigo en ese campo
-                String n = nombre == null ? "" : nombre.toString();
-                String c = codigoCol == null ? "" : codigoCol.toString();
-                if (!n.equalsIgnoreCase(this.filtroProducto) && !c.equalsIgnoreCase(this.filtroProducto)) modelo.removeRow(r);
+                Object productoCol = modelo.getValueAt(r, 3);
+                String prod = productoCol == null ? "" : productoCol.toString();
+                if (!prod.equalsIgnoreCase(this.filtroProducto)) modelo.removeRow(r);
             }
         }
     }
