@@ -18,6 +18,8 @@ public class Main {
         // Inicializar controladores compartidos
         final Controladores controladores = new Controladores();
 
+        
+
         // Crear monitores globales y arrancarlos inmediatamente
         util.GlobalMonitorDispatcher dispatcher = util.GlobalMonitorDispatcher.getInstance();
 
